@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Rendering;
 
 
 //Detta är virusmekanikens supperklass
@@ -12,6 +13,49 @@ using UnityEngine;
 
 public abstract class VirusHandlingScript : MonoBehaviour
 {
+    [Header("Virus Grundinställningar")]
+
+    [SerializeField] protected string nameOfVirus = "Unknown"; //
+
+    [Header("Fas/Stadie och Tidskontroll")]
+
+    //Sätter värdet på det totala tiden sedan infrektion, 
+    //Noll stäls om spelaren exempelvis dör av viruset
+    [SerializeField] protected float totInfectionTime = 120f; //OBS kommer justeras senare. Lättare att testa med kortare väntetid
+
+    //Tiden det tar fö´r viruset att gå från stadie 0/ett till stadie 1/ två Från Dormant till active
+    [SerializeField] protected float dormantTime = 20; //OBS
+
+    //Tiden det tar  för viruset att gå från Actvt till Critical
+    [SerializeField] protected float activeTime = 50;
+
+    //Critical --> terminal
+    [SerializeField] protected float criticalTime = 80;
+
+    [Header("Skada och ")]
+    //basskadan per sekund under den aktiva fasen,
+    //skaddan kommer upptrappas senare 
+    [SerializeField] protected float baseActiveDPS = 0.003f;
+
+    //En multiplicator under the kritiska fasen
+    [SerializeField] protected float criticalFactor = 2.2f;
+
+    //Enn multiplicator för den dödliga fasen
+    [SerializeField] protected float terminalFactor = 3.5f;
+
+    //en stamina drain per sekund under den aktiva fasen
+    [SerializeField] protected float baseActiveStaminaReductionPS;
+
+    //under den dödliga fasen
+    [SerializeField] protected float terminalStaminaReduction;
+
+
+
+    
+
+
+    //
+
    
     
     
