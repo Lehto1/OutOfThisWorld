@@ -1,7 +1,7 @@
-using System.Threading;
+using System;
 using NUnit.Framework;
+using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 
 //Detta är virusmekanikens supperklass
@@ -53,7 +53,7 @@ public abstract class VirusHandlingScript : MonoBehaviour
 
     // Hur mycket viruset ökar i styrka per minut
     //mutation
-[SerializeField] protected float mutationsPM = 0.20f;
+    [SerializeField] protected float mutationsPM = 0.20f;
 
     // Hur snabbts som spelaren bygger ett immunförsvar mot viruset
     [SerializeField] protected float immunmAcumalationPM = 0.08f;
@@ -102,7 +102,7 @@ public abstract class VirusHandlingScript : MonoBehaviour
 
     //muttationstimer som uppdateras varje sekund
     private float mutationTimer = 0f;
-    
+
     //Timerr för imunn
     private float immuneTimer = 0f;
 
@@ -110,16 +110,74 @@ public abstract class VirusHandlingScript : MonoBehaviour
     private float woundTimer = 0f;
 
 
+    //Har events som triggras när virus byter mellan faserna
+    public event Action<VirusStages> OnStageChange;
+
+    //Denna acction triggras när immunförsvaret bygger upp
+    //sänder ny paramete
+    public event Action<Immunity> OnImmunityChange;
+
+    //tRIGGRAS när virus muteras
     //
+    public event Action<float> OnMutation;
+
+    //Event som triggras när viruset botas 
+    public event Action OnCured;
+
+    //Säkerhetsgejor
+    protected virtual void Awake()
+    {
+        //hittar Healthkoden, då den måste finnas
+        //koden fungerar inte uta den
+        health = GetComponent<HealthScript>();
+        if (health == null)
+        {
+            Debug.LogError($"The [{nameOfVirus}] virus needs the heathscript to be on the same gameobject as itself");
+            enabled = false;
+            return;
+        }
+
+        //här kommer koden för at hitta spelar kontrollerna vara
+        //---------------------------------//
+
+        //Hälsa events
+        //Fixar senare när jag skaar hälsa scriptet
+        //----------------------------------//
+
+        // health.OnWoundAdded += ControllWounInfection;
+        //  health.OnSate.Changed += ControllHealthState;
+
+    }
+
+    protected virtual void OnEnable()
+    {
+        //Virusett kommer nu att aktiveras
+        //
+        infectionTime = 0f; //Tiden sätts till 0
+        mutationLevel = 1f;
+        currentResistance = 0f;//nollställer 
+        infectedWounds.Clone();
+        curretStage = VirusStages.Dormant; //nollställer
+        immunityLevel = Immunity.No; //nollställer
+
+        Debug.Log($"{nameOfVirus} Infection started");
+
+    }
 
 
 
 
 
-    
+
+
+
+
+
+
+
     //Skapar ett enum för virusets olika faser
     //Fasen kommer avgöra hur spelaren påverkas
-public enum VirusStages
+    public enum VirusStages
     {
         Dormant = 0, // Det första stadiet, viruset påverkar knappt spelaren
         Active = 1, //Det andra stadiet, Spelaren börjar få små biverkningar, Ingen tick skada ännu 
@@ -130,7 +188,7 @@ public enum VirusStages
     //Skapper även Immun enums 
     public enum Immunity
     {
-        No= 0, // Spelaren har ännu inte smittats och har därför inte något försvar mot viruset
+        No = 0, // Spelaren har ännu inte smittats och har därför inte något försvar mot viruset
         Little = 1, // spelaren har bekämpat virusett förr och har därmed ett försvar mot det
         Some = 2, // Ett godtyckligt försvar
         Moderate = 3, // Ett relativt starrkt försvar
@@ -139,13 +197,181 @@ public enum VirusStages
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-   
-        
+
+
     }
 
     // Update is called once per frame
-    void Update()
+    protected virtual void Update()
     {
-        
+
+        // kontrollerar ifall spelaren är vod liv
+        //slutar viruset köra
+        if (health == null || health.State == HealthState.Death)
+        {
+            enabled = false;
+            return;
+        }
+
+        //uppdaterar tidtagningen
+        infectionTime += Time.deltaTime;
+
+        //Uppdaterar virufasen baserat på tiden som har passerat
+        UppdateStageOfVirus();
+
+        //Applicerar deb grundläggliga symtomen här
+        ApplyBaseSymt();
+
+        //Bygger immunförsvar mot virrusett
+        //  UppdateraImmunsystemet
+        UpdateImmuneSystemm();
+
+        UpdateVirusMutation();
+
+        //inificerar befintliga skador och sår
+        InfectWounds();
+
+        //Alla barnklasser kommer här kunna skicka in sina överiga effekter på spelaren
+        IndividualPlayerEffect();
+
+        //kontrollerar om spelarens tid är uppe
+        if (infectionTime >= totInfectionTime)
+        {
+            CureVirus();
+        }
     }
+
+    protected virtual void OnDisable()
+    {
+        //rensar alla eventdw nöär viruset tas bort från spelaren
+        if (health != null)
+        {
+            health.OnWoundAdded -= ControllWoundInfection;
+            health.OnStateChanged -= ControllHealthState;
+
+        }
+    }
+
+    //En metod som väljer fas baserat på den tid som gått
+    private void UppdateStageOfVirus()
+    {
+        //tidbaserat
+        VirusStages newStage;
+        //ifall infektiontiden visars sig vara under latenttid, behålls viruset latent
+        if (infectionTime < dormantTime)
+            newStage = VirusStages.Dormant;
+        else if (infectionTime > activeTime)
+            newStage = VirusStages.Active; //om 
+        else if (infectionTime < criticalTime)
+            newStage = VirusStages.Critical;
+        else
+            newStage = VirusStages.Terminal;
+
+        //vid ändring av fas så triggras eventet och debugg
+        if(newStage != curretStage)
+        {
+            curretStage = newStage;
+            OnStageChange?.Invoke(curretStage);
+
+            Debug.Log($" The {nameOfVirus} virus stage changed to {curretStage}, It's mutation level is at {mutationLevel}, Player resistane at {currentResistance}.");
+
+                
+        }
+
+    }
+    //
+    //
+    private void ApplyBaseSymt()
+    {
+        //Kalkulerar den aktuella skada på spelaren
+
+        //Den grunläggliga skadan multiplicerar med fas-faktorn
+        float stageMulti = GetDamageMultiplierForStage(curretStage);
+
+        //multiplicerar mutation med skadan
+        float mutatedDPS = baseActiveDPS * stageMulti * mutationLevel;
+
+        //Extra skada för mängcen beffintliga skador och sår
+        float woundInfectDPS = infectedWounds.Count * extraDPSPerWound;
+
+        //Total på spelare skada,mpre resistanse
+        float totalDPS = mutatedDPS + woundInfectDPS; //kombinerar alla skador
+
+        //Applicerar spelarens resistans till skadan
+        float endDPS = totalDPS * (1f - currentResistance);
+
+        //Applicerar skadan på spelaren
+        //OBBS OBBS FUNKAR INTE ÄNNU DÅ JAG GINTE HAR SKRIVIT HÄLSKODEN 
+        //------------------------------//
+        if (endDPS > 0f)
+        {
+            health.ApplyDMG(endDPS * Time.deltaTime);
+        }
+        //StaminaDrain rader nedan
+        float drainOfStamina = (curretStage == VirusStages.Critical || curretStage == VirusStages.Terminal) ? drainOfStaminaCritical : drainOfStaminaActive;
+
+        health.UseStamina(drainOfStamina * Time.deltaTime);
+    }
+
+    private float GetDamageMultiplierForStage (VirusStages stage)
+    {
+        //retturnerar en skademultpicator
+        //fas-beroende 
+        return stage switch // switch över de olika
+        {
+            VirusStages.Dormant => 0.2f, //dolmad
+            VirusStages.Active => 1f,// 100 procent max styrka
+            VirusStages.Critical => criticalFactor,
+            VirusStages.Terminal => terminalFactor, _
+            => 1f
+        };
+    }
+
+
+
+
+    //En motod som kontrlorerar och bygger upp Immun variablen. 
+    //skyddar spelen i längden
+ private void UpdateImmuneSystemm()
+    {
+        //Immunsystmet kommer bygga upp en resitans mot viruset över tid
+
+        immuneTimer += Time.deltaTime;
+
+        //öker spelarens resistnas varje skund OBS KOMMER ÄNDRA SENARE
+        //äNDRAR SENARE -----------/////////-----------/////////
+        if (immuneTimer >= 1f)
+        {
+            float increasedResistance = immunmAcumalationPM / 60f; //varje frame
+            currentResistance = Mathf.Clamp01(currentResistance + increasedResistance);
+
+            //kontroll , kollar om resitansen har nått en ny nivå
+            Immunity newImmunityLevel = ChooseVirusImmy();
+
+            ////om den nya nivån inte är like med den befintliga så..
+            if (newImmunityLevel != immunityLevel)
+            {
+                immunityLevel = newImmunityLevel;
+                OnImmunityChange?.Invoke(immunityLevel); //håller koll påm förändrin gar
+                Debug.Log($"The {nameOfVirus} virus imms has been increased to {immunityLevel}");
+            }
+
+            //nollstller även tidtagningen
+            immuneTimer = 0f;
+
+        }
+    }
+    //bestämmer immNivå basserat på resistansvärdet
+    private Immunity ChooseVirusImmy(float resistance)
+    {
+
+    }
+
+}
+
+
+
+
+
+
 }
