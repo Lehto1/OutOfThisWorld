@@ -1,3 +1,5 @@
+using System.Threading;
+using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -49,19 +51,71 @@ public abstract class VirusHandlingScript : MonoBehaviour
     //under den dödliga fasen
     [SerializeField] protected float terminalStaminaReduction;
 
+    // Hur mycket viruset ökar i styrka per minut
+    //mutation
+[SerializeField] protected float mutationsPM = 0.20f;
 
+    // Hur snabbts som spelaren bygger ett immunförsvar mot viruset
+    [SerializeField] protected float immunmAcumalationPM = 0.08f;
 
+    //Den maximala virus ressistansen , [Range(0f, 1f)] protected float maxinumVirusResistans = 0.6f;en skala mellan 0 ck 1
+    [SerializeField][Range(0f, 1f)] protected float maxinumVirusResistans = 0.6f;
+
+    [Header("Sår och sårsmittnin")]
+
+    //varje sekund så finns det n tjans tt viruset smittar befintliga skador.
+    //Att ha mpnga infekterade sår gör så at man tar extra skada
+    [SerializeField] protected float woundInfectionChance = 0.03f;
+
+    //Man kommer skadas extta fråme infekterade skador  p2weer sekun
+    [SerializeField] protected float extraDPSPerWound = 0.4f;
+
+    //Nu kommer alla runtime variablernna
+
+    // En variabel för hur länge viruset  har funnits i spelaren.
+    //kommer börja vid 0 och öka varj  frame
+    protected float infectionTime = 0f;
+
+    //Håller reda på virusets  nuvariga fas BASERAT PÅ INFEKTIONSTIDEN OVAN
+    protected VirusStages curretStage = VirusStages.Dormant; // Börjar som lattent
+
+    //Variable för immunförsvarets nuvarande nivå
+    protected Immunity immunityLevel = Immunity.No; //börjar spelet med
+
+    // selarens ressistans
+    protected float currentResistance = 0f;
+
+    //Variabel för virusetts ''mutationsnivå''
+    //hur myckt starrkare än start virust har blivigt
+    protected float mutationLevel = 1f;
+
+    //lista på spelarens infekterade skador och sår
+    protected List<Wound> infectedWounds = new List<Wound>();
+
+    //PROTECTED Health
+    //referens till spelarens hälsa
+    protected HealthScript health;
+
+    //Framtida refferens till kontroller //
+    //-------------------------------&//
+    //------------------------/////-
+
+    //muttationstimer som uppdateras varje sekund
+    private float mutationTimer = 0f;
     
+    //Timerr för imunn
+    private float immuneTimer = 0f;
+
+    //Timer för wound infektion
+    private float woundTimer = 0f;
 
 
     //
 
-   
-    
-    
-    
-    
-    
+
+
+
+
     
     //Skapar ett enum för virusets olika faser
     //Fasen kommer avgöra hur spelaren påverkas

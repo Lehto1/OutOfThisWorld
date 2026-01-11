@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class VirusStage1 : MonoBehaviour
+public class VirusStage1 : VirusHandlingScript
 {
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
