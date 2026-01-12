@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using System;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 
 public class HealthScript : MonoBehaviour
 
@@ -285,7 +286,63 @@ public class HealthScript : MonoBehaviour
         wounds.Add(newWound);
 
         //triggrar event
+        //
+        OnAdditionalWound?.Invoke(newWound);
 
+        //logg
+        Debug.Log($"New wound created, ID : {newWound.id}. DMG : {damage}, Tot wounds {wounds.Count}");
+
+        //retunerar lista med wound "sår" object 
+        public List<Wound> GetWounds()
+    {
+        return wounds;
+    }
+
+    //Hämtar antallet sår
+    //retunerar hur många sår spelaren har
+    public int GetCountOfWounds()
+    {
+        return wounds.Count;
+    }
+
+    //en metod för att även hämta alla infekterade sår, räknar egenom och 
+    public int GetCountInfectedWounds()
+    {
+        int count = 0;
+        //looper egenom hela listan
+        foreach (Wound wound in wounds)
+        {
+            if (wound.isInfected)
+            {
+                count++;
+            }
+
+
+        }
+        return count;
+    }
+
+    //lääker specifika sår 
+    //Tar bort ett sår från liostan
+
+    public void HealAWound(int idWound)
+    {
+        //söker upp såred med samma ID
+        Wound healThisWound = wounds.Find(w => w.id == idWound); ; //sö
+
+        if(healThisWound != null )
+        {
+            //HITTAT SÅR
+            //TAr bort det funna såret
+            wounds.Remove(healThisWound);
+
+            Debug.Log($"The wound {woundID} has healed and been removed");
+
+        } else
+        {
+            //hittades inte
+            Debug.LogWarning($"Could not match any woud to ID : {woundID}");
+        }
     }
     //Getter kod och Gettermetoder
 
