@@ -8,4 +8,6 @@ public class Wound : MonoBehaviour
 
     public bool isInfected; // flagg som signerar ifall skadan är infekterad eller inte
 
+    //fyller sedan
+    //ifall vi hinner 
 }
