@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class VirusStage3 : VirusHandlingScript
+public class NewMonoBehaviourScript : MonoBehaviour
 {
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -12,9 +12,5 @@ public class VirusStage3 : VirusHandlingScript
     void Update()
     {
         
-    }
-    protected override void IndividualPlayerEffect()
-    {
-
     }
 }

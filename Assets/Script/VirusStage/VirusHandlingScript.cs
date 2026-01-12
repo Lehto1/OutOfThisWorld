@@ -4,6 +4,9 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Rendering;
 
+using System.Collections.Generic;
+
+
 
 //Detta är virusmekanikens supperklass
 //Alla stadier utav viruset är barn av denna kod
@@ -35,6 +38,14 @@ public abstract class VirusHandlingScript : MonoBehaviour
     //Critical --> terminal
     [SerializeField] protected float criticalTime = 80;
 
+    [Header("sTAMINADRAIN")]
+    // DRAIN VID aaktivt virus
+    [SerializeField] private float drainOfStaminaActive = 10;
+
+    [SerializeField] private float drainOfStaminaCritical= 10;
+
+
+
     [Header("Skada och ")]
     //basskadan per sekund under den aktiva fasen,
     //skaddan kommer upptrappas senare 
@@ -60,7 +71,7 @@ public abstract class VirusHandlingScript : MonoBehaviour
     [SerializeField] protected float immunmAcumalationPM = 0.08f;
 
     //Den maximala virus ressistansen , [Range(0f, 1f)] protected float maxinumVirusResistans = 0.6f;en skala mellan 0 ck 1
-    [SerializeField][Range(0f, 1f)] protected float maxinumVirusResistans = 0.6f;
+    [SerializeField][UnityEngine.Range(0f, 1f)] protected float maxinumVirusResistans = 0.6f;
 
     [Header("Sår och sårsmittnin")]
 
@@ -157,7 +168,7 @@ public abstract class VirusHandlingScript : MonoBehaviour
         infectionTime = 0f; //Tiden sätts till 0
         mutationLevel = 1f;
         currentResistance = 0f;//nollställer 
-        infectedWounds.Clone();
+        infectedWounds.Clear();
         curretStage = VirusStages.Dormant; //nollställer
         immunityLevel = Immunity.No; //nollställer
 
@@ -247,8 +258,8 @@ public abstract class VirusHandlingScript : MonoBehaviour
         //rensar alla eventdw nöär viruset tas bort från spelaren
         if (health != null)
         {
-            health.OnWoundAdded -= ControllWoundInfection;
-            health.OnStateChanged -= ControllHealthState;
+            health.OnAdditionalWound -= ControllWoundInfection;
+            health.OnStateChange -= ControllHealthState;
 
         }
     }
@@ -347,7 +358,7 @@ public abstract class VirusHandlingScript : MonoBehaviour
             currentResistance = Mathf.Clamp01(currentResistance + increasedResistance);
 
             //kontroll , kollar om resitansen har nått en ny nivå
-            Immunity newImmunityLevel = ChooseVirusImmy();
+            Immunity newImmunityLevel = ChooseVirusImmy(currentResistance);
 
             ////om den nya nivån inte är like med den befintliga så..
             if (newImmunityLevel != immunityLevel)
@@ -418,7 +429,7 @@ public abstract class VirusHandlingScript : MonoBehaviour
             {
                 //kollar om skadan i fråga redan är smittat 
                 //ifall den är det, hoppar jag över denna wound 
-                if(!woundTimer.isInfected)
+                if(!wound.isInfected)
                 {
                     //slumpar ett värde /chans 
                     //om det slumpade värdet är mindre än chansvärdet så smittas skadan
@@ -466,10 +477,10 @@ public abstract class VirusHandlingScript : MonoBehaviour
 
     //Detta håller koll på spelarens hälsa, vid ändringar 
     //OM SPELAREN INT ELÄNGRE ÄR VID LIV SÅ KOMMER koden at stänga
-    private void ControllHealthState(StateOfHealth newHealthState)
+    private void ControllHealthState(HealthState newHealthState)
     {
         //koollar ifall spealren forfarande lever
-        if(newHealthState != StateOfHealth.Alive)
+        if(newHealthState != HealthState.Alive)
         {
             //stänger av viruset
             enabled = false;
@@ -499,9 +510,7 @@ public abstract class VirusHandlingScript : MonoBehaviour
 
     public float GetImmuneResitanceLevel() => currentResistance;
 
-    //retunerar en lista utav alla symtomer 
-    //ala activa symtomer
-    public List<SymtomsOfVirus> GetCurrentVirusSymtoms() => new List<SymtomsOfVirus>(activeVirusSymtom);
+
 
     public string GetVirusName() => nameOfVirus;
     

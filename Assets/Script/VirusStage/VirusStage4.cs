@@ -13,4 +13,8 @@ public class VirusStage4 : VirusHandlingScript
     {
         
     }
+    protected override void IndividualPlayerEffect()
+    {
+
+    }
 }

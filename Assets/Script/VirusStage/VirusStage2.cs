@@ -13,4 +13,9 @@ public class VirusStage2 : VirusHandlingScript
     {
         
     }
+
+    protected override void IndividualPlayerEffect()
+    {
+
+    }
 }
