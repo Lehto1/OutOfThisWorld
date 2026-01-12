@@ -7,13 +7,13 @@ public class StartMenu : MonoBehaviour
     [SerializeField] private string firstLevelSceneName;
     public void StartGame()
     {
-        SceneManager.LoadScene(firstLevelSceneName);
+        SceneManager.LoadScene(firstLevelSceneName); //loadarin första scenen
     }
 
-    // Update is called once per frame
+  
    public void QuitGame()
     {
-        Debug.Log("Game Quit"); // Works in editor
-        Application.Quit();     // Works in build
+        Debug.Log("Game Quit"); // skriver i debug logen "game quit"
+        Application.Quit();     // lämmnar spelet 
     }
 }
