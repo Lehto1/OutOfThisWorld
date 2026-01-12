@@ -142,10 +142,19 @@ public class HealthScript : MonoBehaviour
         //skappas ett sår
         if(dMG > woundThresh)
         {
-
+            //kallar metod som skapar skador  utifrån DMG värdet
+            CreateWound(dMG);
         }
 
+        //Uppdateara hälsotillståndet
+        //då spelaren nyligen tog skada 
+        UpdatePlayerHealthState();
+    }
 
+    //spelaren återfår hälsa,
+    //Denna metod healar en viss mängd hälsa.
+    public void HealPlayer()
+    {
 
 
     }
@@ -158,6 +167,15 @@ public class HealthScript : MonoBehaviour
 
     }
 
+   public void  UpdatePlayerHealthState()
+    {
+
+    }
+
+    public void CreateWound(float damage)
+    {
+
+    }
     //Getter kod och Gettermetoder
 
 
