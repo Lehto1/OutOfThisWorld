@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class HealthScript : MonoBehaviour
 {
@@ -46,13 +47,32 @@ public class HealthScript : MonoBehaviour
 
     [SerializeField] private HealthState state = HeathState.Alive; ///fixxar vid senare tillf'lle
 
+    []
+
     [Header("Wound list + extra")]
     //alla sår "wounds" representerar skador på spelaren kropp,
     //dessa skaddar kan natuligvis "infekteras" utav viruset
     //Skappar darför en lista på alla spelarens sår
     private List<Wound> wounds = new List<Wound>(); //Wound finns inte ännu, Kommer fixa vid seanre tillfälle
 
-    private 
+    //wound räknare, Varibeln som senare kommer hållareda på 
+    //cara skada kommer att få unik id
+
+    private int woundID = 0;
+
+    //Event som kommer att triggras vid större händelser
+    [Header("Events and triggerss")]
+
+    //När ett nytt sår "Wound" skapas 
+    public event Action<Wound> OnAdditionalWound; // kommer funka senare när jag skapar wound
+
+    //triggras när splearen övergår mellan olika "Healthstates" exempoelvis vid död
+    public event Action<HealthState> OnStateChange;
+
+    //triggras när spelaren tar skada
+    public event Action<float> OnDamageTaken;
+
+
 
     void Start()
     {
