@@ -153,18 +153,114 @@ public class HealthScript : MonoBehaviour
 
     //spelaren återfår hälsa,
     //Denna metod healar en viss mängd hälsa.
-    public void HealPlayer()
+    public void HealPlayer(float healingAMount)
     {
+        //valliderar 
+        if( healingAMount <= 0)
+        {
+            Debug.LogWarning("HealingAmount has to be above 0");
+            return;
+        }
+        //ökar spelarens hälsa 
+        currentHealth += healingAMount;
+        currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
 
+        Debug.Log($"Player healed {healingAMount} HP , Current health : {currentHealth / maxHealth}");
+
+               //Uppdaterar här spelarens hälso tillstånd,
+    UpdateHealthState();
 
     }
-    public void RegenStamina()
+
+    //En metod som uppdatera spelaren hälsotillstånds baserat på
+    //den nuvarande hälsan
+    private void UpdateHealthState()
     {
+        HealthState newState;
+
+        //bestämmer det nya tillstondet baserat på 
+        //Mängden HP
+        if (currentHealth <= 0)
+        {
+            newState = HealthState.Death; // om Hp är lika med eller är mindre än 0, så är spelaren död
+        }
+        else if (currentHealth < maxHealth * 0.33f)
+        {
+            newState = HealthState.Ailing; // om Hp är under 33 procent
+
+        }
+        else
+        {
+            newState = HealthState.Alive;
+        }
+
+        //Om tillståndet förrändras, triggras detta evvent
+        //för då har det skett en förändring
+        if (newState != state)
+        {
+            state = newState;
+            //ivokar 
+            OnStateChange?.Invoke(state); //
+
+            Debug.Log($"Healthstate cahnged to {state}");
+
+        }
+    }
+
+    //Metod för att använda stamina, vilket minskar spelaren ´s enegri
+    //Denna mettod kallas när spealren gör något som förbrukar energi 
+    public void UseStamina(float stmAmount)
+    {
+        //Det går ite för denna metod att använda 0 stamina,
+        //dätmed so kommer metod returna ifall stmAmount är 0
+
+        if (stmAmount <= 0)
+        {
+            Debug.LogWarning("Stamina requirement not ");
+            return;
+
+        }
+
+        //minskar stamina
+        currentStamina -= stmAmount;
+
+        //jag säkkerställer h'r att stamina värdet aldrig går utanför rimliga värde. 
+        //går inte över max, går inte till minus
+        currentStamina = Mathf.Clamp(currentStamina,0,maxinumStamina);
+
+        // triggrar event onStaminachanged
+        OnStaminaChnge?.Invoke(currentStamina);
+
+        Debug.Log($"Stamina used : {stmAmount}, New stamina amout : {currentStamina}/{maxinumStamina}");
 
     }
-    public void UseStamina(float energy)
-    {
 
+    //Denna metod kallas från update varje frame.
+    //Tillåter en ölångsam återhämtning av stamina
+    //StaminaRegen styr hastighetn
+  private void RegenStamina()
+            {
+        ////Om stamina inte är full, så återhämtas den
+        if(currentStamina < maxinumStamina)
+        {
+            // ökar stmaina paserat på deltatime
+            currentStamina += staminaRegen * Time.deltaTime;
+
+            // säkkerställer att värdet allrig överstiger max
+            currentStamina = Mathf.Clamp(currentStamina,0,maxinumStamina);
+
+            //On
+            OnStaminaChnge.Invoke(currentStamina);
+        }
+
+            }
+   
+    //Kontrollerar om spelaren har tillräckligt med stamina 
+    //Rettunerar om stamina överstiger kravvärdet
+
+    public bool HasSufficentStamina(float requiredAmount)
+    {
+        return currentStamina >= requiredAmount;
     }
 
    public void  UpdatePlayerHealthState()
@@ -172,8 +268,23 @@ public class HealthScript : MonoBehaviour
 
     }
 
+
+    //Kallas när en attack gör mer skada änn tresh
     public void CreateWound(float damage)
     {
+        //skappaet ett nytt object av sorten wound
+        Wound newWound = new Wound
+        {
+            //ger skadan ett unikt IFD
+            id = woundID++, //öknar ID räknaren
+            //blir inte  infekteran ännu
+            isInfected = false,
+        };
+
+        //LÄGGER TILL TILL LISTAN
+        wounds.Add(newWound);
+
+        //triggrar event
 
     }
     //Getter kod och Gettermetoder
