@@ -4,7 +4,7 @@ using UnityEngine.Experimental.GlobalIllumination;
 public class Movement : MonoBehaviour
 {
     int Running = 1; //Variabel som ändrar på spelarens hastighet
-    
+
 
     Rigidbody RB;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -54,5 +54,10 @@ public class Movement : MonoBehaviour
         {
             Running = 2;
         }
+    }
+
+    void IsCrouching()
+    {
+
     }
 }

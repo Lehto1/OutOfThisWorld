@@ -47,7 +47,7 @@ public class HealthScript : MonoBehaviour
 
     [SerializeField] private HealthState state = HeathState.Alive; ///fixxar vid senare tillf'lle
 
-    []
+    
 
     [Header("Wound list + extra")]
     //alla sår "wounds" representerar skador på spelaren kropp,
