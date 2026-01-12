@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class NewMonoBehaviourScript : MonoBehaviour
+public class StartMenu : MonoBehaviour
 {
     [Header("Scene to load")]
     [SerializeField] private string firstLevelSceneName;
