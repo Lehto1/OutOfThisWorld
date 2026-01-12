@@ -2,6 +2,7 @@ using System;
 using NUnit.Framework;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 
 //Detta är virusmekanikens supperklass
@@ -364,8 +365,152 @@ public abstract class VirusHandlingScript : MonoBehaviour
     //bestämmer immNivå basserat på resistansvärdet
     private Immunity ChooseVirusImmy(float resistance)
     {
+        if (resistance < 0.2f) return Immunity.No;
+        if (resistance < 0.4f) return Immunity.Little;
+        if (resistance < 0.6f) return Immunity.Some;
+        if (resistance < 0.8f) return Immunity.Moderate;
+        return Immunity.Strong; // 
 
     }
+
+    //kontineurlig Mutations mekanik 
+    //Viruset kommmer med denna metod kunna förstärka sig själv 
+
+    private void UpdateVirusMutation()
+    {
+        //   uppdaterar timern 
+        mutationTimer += Time.deltaTime;
+
+        //viruset kommer att mutera vadera minut
+        if (mutationTimer >= 62f)
+        {
+            float mutationIncrease = mutationsPM; // ökningen blir den samma som den redan existerande variabeln
+            mutationLevel += mutationIncrease;
+
+            //event ......
+            OnMutation?.Invoke(mutationLevel);
+
+            //dubbugar
+            Debug.Log($"The [{nameOfVirus}] virus mutation level:{mutationLevel}");
+
+            //nollställer timern 
+            mutationTimer = 0f;
+
+        }
+    }
+
+    // VBirusetkoden försöker inficera skadorna 
+    //om viruset lyckas så kommer tick skadan öka, spelaren skulle då ta mer skada per sekund
+    private void InfectWounds()
+    {
+        //
+        woundTimer += Time.deltaTime;
+
+        //kollar för infektion i skadorna
+        if(woundTimer >= 1f)
+        {
+            //hÄMTAR ALLA SKADOR SOM SPELAREN HAR SAMLAT PÅ SIG
+            //SKAPAR EN VAR FÖR DETTA
+            var playersWounds = health.GetWounds();
+
+            //loopar egenom alla skador i listan
+            foreach( var wound in playersWounds )
+            {
+                //kollar om skadan i fråga redan är smittat 
+                //ifall den är det, hoppar jag över denna wound 
+                if(!woundTimer.isInfected)
+                {
+                    //slumpar ett värde /chans 
+                    //om det slumpade värdet är mindre än chansvärdet så smittas skadan
+                    if (UnityEngine.Random.value < woundInfectionChance)
+                    {
+                        //smittat
+                        wound.isInfected = true;
+
+                        //lägger till i listan av smittade skador
+                        if (!infectedWounds.Contains(wound))
+                        {
+                            infectedWounds.Add(wound);
+
+                            //
+                            Debug.Log($"[{nameOfVirus}] Infected wound ; {wound.id}!");
+
+                        }
+                    }
+                }
+            }
+            //
+           woundTimer = 0f;
+        }
+
+    }
+    
+    //kallas när spelaren får en ny skada//OBS// skade system kommer sen, har inte hunnit med ännu
+    //
+    private void ControllWoundInfection(Wound wound)
+    {
+        // 
+        if(UnityEngine.Random.value < woundInfectionChance * 2f)
+        {
+            //markerar som smittad
+            wound.isInfected = true;
+
+            //lägger till i listan
+            infectedWounds.Add( wound);
+
+            //
+            Debug.Log($"{nameOfVirus} infected wound {wound.id}");
+        }
+
+    }
+
+    //Detta håller koll på spelarens hälsa, vid ändringar 
+    //OM SPELAREN INT ELÄNGRE ÄR VID LIV SÅ KOMMER koden at stänga
+    private void ControllHealthState(StateOfHealth newHealthState)
+    {
+        //koollar ifall spealren forfarande lever
+        if(newHealthState != StateOfHealth.Alive)
+        {
+            //stänger av viruset
+            enabled = false;
+
+            Debug.Log($"{nameOfVirus} The player is now {newHealthState} The virus is therfore  deactivating");
+
+        }
+    }
+   
+    //metoden nedan anropas då spelaren exempelvis använder ett botemedel vilket orsakar att viruset botas
+    //exempelvis med medicinering 
+    private void CureVirus()
+    {
+
+        OnCured?.Invoke();
+    }
+    //denna metod är till för de olika barnklasserna 
+    //är därmed abstract
+    protected abstract void IndividualPlayerEffect();
+
+    //På en skala mellan 0 och 1 hämtar jag här hur pass långt viruset har verkat
+    public float GetInfectionprogress() => Mathf.Clamp01(infectionTime / totInfectionTime);
+
+    public VirusStages GetCurretStage() => curretStage; // möjligör en extern hämtning utav den nuvariga fasen 
+
+    public float GetMutationLevel() => mutationLevel; // möjliggör en extern hämt utav mutationsnivån 
+
+    public float GetImmuneResitanceLevel() => currentResistance;
+
+    //retunerar en lista utav alla symtomer 
+    //ala activa symtomer
+    public List<SymtomsOfVirus> GetCurrentVirusSymtoms() => new List<SymtomsOfVirus>(activeVirusSymtom);
+
+    public string GetVirusName() => nameOfVirus;
+    
+
+    
+
+
+
+
 
 }
 
