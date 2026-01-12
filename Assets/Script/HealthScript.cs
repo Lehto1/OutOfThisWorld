@@ -44,13 +44,13 @@ public class HealthScript : MonoBehaviour
     //vid liv, lidande eller död
     //Alive, Ailing, Dead
 
-    [SerializeField] private HealthState state = HeathState.Alive;
+    [SerializeField] private HealthState state = HeathState.Alive; ///fixxar vid senare tillf'lle
 
     [Header("Wound list + extra")]
     //alla sår "wounds" representerar skador på spelaren kropp,
     //dessa skaddar kan natuligvis "infekteras" utav viruset
     //Skappar darför en lista på alla spelarens sår
-    private List<Wound> wounds = new List<Wound>();
+    private List<Wound> wounds = new List<Wound>(); //Wound finns inte ännu, Kommer fixa vid seanre tillfälle
 
     private 
 
