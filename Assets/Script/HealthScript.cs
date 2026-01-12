@@ -73,23 +73,83 @@ public class HealthScript : MonoBehaviour
     //triggras när spelaren tar skada
     public event Action<float> OnDamageTaken;
 
+    public event Action<float> OnStaminaChnge;
 
+    //Skappar getters
+  //för det nuvarande hälsotillståndet
+  public HealthState State => state;
 
-  
+    //getter för currentHhealth
+    public float CurrentHP => currentHealth;
 
-    //Enr HealthState getter 
-    public HealthState State => state;
-  
-    //En 
+    //getter för MaximalHp
+    public float MaxHP => maxHealth;
 
+    //getter för de nuvrande energinivåerna
+    public float CurrentStamina => currentStamina;
 
+    //Getter för spealren maximala stamina
+    public float MaxStamina => maxinumStamina;
 
-    
+    //Ui
+    //retunerar HP i procent
+    public float HPPercent => currentHealth / maxHealth;
+
+    //retunerar Stamina procent
+    public float StaminaPercent => currentStamina / maxinumStamina;
+        
     void Start()
     {
-        
+        //sätter energi och häls värdena till maximalt vid kodens start
+        currentHealth = maxHealth; //sätts till max
+        currentStamina = maxinumStamina; //sätt till max
+
+        Debug.Log($"Player init, Health level:{currentHealth/maxHealth}, Stamina:{currentStamina/maxinumStamina}");//säkerhet
     }
+  
+
+    // Update is called once per frame
+    void Update()
+    {
+        //uppdatera det återhämtande stamminavärde en varje frame
+        RegenStamina();
+    }
+
+    //En metod som applicerar skada på spelarens hälsa, 
+    //om skadan överstiger tresholden så skapad det sår.
     public void ApplyDMG(float dMG)
+    {
+        //validerar, 
+        //spelaren kommer inte konna ta skada efta att spealern redan dött
+        if (state == HealthState.Death)
+        {
+            //Informerar konsollen
+            Debug.Log("Player has already died, can not take DMG");
+            return;
+
+        }
+         //minskar spelarhälsan
+         currentHealth -= dMG;
+        currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth); // 
+
+        //Triggrar DMG eventet
+        OnDamageTaken?.Invoke(dMG);
+
+        Debug.Log($"Player took {dMG} damage, Which reduced player HP to {currentHealth / maxHealth} ");
+
+        //ifall dmg värdet som spelaren tog 
+        //är så pass tor så att den överstiger trhesholden 
+        //skappas ett sår
+        if(dMG > woundThresh)
+        {
+
+        }
+
+
+
+
+    }
+    public void RegenStamina()
     {
 
     }
@@ -98,14 +158,8 @@ public class HealthScript : MonoBehaviour
 
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
     //Getter kod och Gettermetoder
-   
+
 
     public List<Wound> GetWounds()
     {
