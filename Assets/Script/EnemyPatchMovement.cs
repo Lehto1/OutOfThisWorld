@@ -6,7 +6,7 @@ public class EnemyPathMovement : MonoBehaviour
     public float speed = 3f;
     public float rotationSpeed = 5f;
 
-    private int currentWaypointIndex = 0;
+    public int currentWaypointIndex = 0;
 
     void Update()
     {
