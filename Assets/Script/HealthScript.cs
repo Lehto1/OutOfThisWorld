@@ -291,6 +291,7 @@ public class HealthScript : MonoBehaviour
 
         //logg
         Debug.Log($"New wound created, ID : {newWound.id}. DMG : {damage}, Tot wounds {wounds.Count}");
+    }
 
         //retunerar lista med wound "sår" object 
         public List<Wound> GetWounds()
@@ -306,7 +307,7 @@ public class HealthScript : MonoBehaviour
     }
 
     //en metod för att även hämta alla infekterade sår, räknar egenom och 
-    public int GetCountInfectedWounds()
+    private int GetCountInfectedWounds()
     {
         int count = 0;
         //looper egenom hela listan
@@ -347,10 +348,10 @@ public class HealthScript : MonoBehaviour
     //Getter kod och Gettermetoder
 
 
-    public List<Wound> GetWounds()
-    {
-        return wounds; // rettunerar listan 
-    }
+   // public List<Wound> GetWounds()
+   // {
+    //    return wounds; // rettunerar listan 
+  //  }
 }
 
 //Healthstate enum 
