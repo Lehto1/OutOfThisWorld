@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using System;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 
 public class HealthScript : MonoBehaviour
 
@@ -73,39 +74,278 @@ public class HealthScript : MonoBehaviour
     //triggras när spelaren tar skada
     public event Action<float> OnDamageTaken;
 
+    public event Action<float> OnStaminaChnge;
 
+    //Skappar getters
+  //för det nuvarande hälsotillståndet
+  public HealthState State => state;
 
-  
+    //getter för currentHhealth
+    public float CurrentHP => currentHealth;
 
-    //Enr HealthState getter 
-    public HealthState State => state;
-  
-    //En 
+    //getter för MaximalHp
+    public float MaxHP => maxHealth;
 
+    //getter för de nuvrande energinivåerna
+    public float CurrentStamina => currentStamina;
 
+    //Getter för spealren maximala stamina
+    public float MaxStamina => maxinumStamina;
 
-    
+    //Ui
+    //retunerar HP i procent
+    public float HPPercent => currentHealth / maxHealth;
+
+    //retunerar Stamina procent
+    public float StaminaPercent => currentStamina / maxinumStamina;
+        
     void Start()
     {
-        
-    }
-    public void ApplyDMG(float dMG)
-    {
+        //sätter energi och häls värdena till maximalt vid kodens start
+        currentHealth = maxHealth; //sätts till max
+        currentStamina = maxinumStamina; //sätt till max
 
+        Debug.Log($"Player init, Health level:{currentHealth/maxHealth}, Stamina:{currentStamina/maxinumStamina}");//säkerhet
     }
-    public void UseStamina(float energy)
-    {
-
-    }
+  
 
     // Update is called once per frame
     void Update()
     {
-        
+        //uppdatera det återhämtande stamminavärde en varje frame
+        RegenStamina();
     }
 
-    //Getter kod och Gettermetoder
+    //En metod som applicerar skada på spelarens hälsa, 
+    //om skadan överstiger tresholden så skapad det sår.
+    public void ApplyDMG(float dMG)
+    {
+        //validerar, 
+        //spelaren kommer inte konna ta skada efta att spealern redan dött
+        if (state == HealthState.Death)
+        {
+            //Informerar konsollen
+            Debug.Log("Player has already died, can not take DMG");
+            return;
+
+        }
+         //minskar spelarhälsan
+         currentHealth -= dMG;
+        currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth); // 
+
+        //Triggrar DMG eventet
+        OnDamageTaken?.Invoke(dMG);
+
+        Debug.Log($"Player took {dMG} damage, Which reduced player HP to {currentHealth / maxHealth} ");
+
+        //ifall dmg värdet som spelaren tog 
+        //är så pass tor så att den överstiger trhesholden 
+        //skappas ett sår
+        if(dMG > woundThresh)
+        {
+            //kallar metod som skapar skador  utifrån DMG värdet
+            CreateWound(dMG);
+        }
+
+        //Uppdateara hälsotillståndet
+        //då spelaren nyligen tog skada 
+        UpdatePlayerHealthState();
+    }
+
+    //spelaren återfår hälsa,
+    //Denna metod healar en viss mängd hälsa.
+    public void HealPlayer(float healingAMount)
+    {
+        //valliderar 
+        if( healingAMount <= 0)
+        {
+            Debug.LogWarning("HealingAmount has to be above 0");
+            return;
+        }
+        //ökar spelarens hälsa 
+        currentHealth += healingAMount;
+        currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
+
+        Debug.Log($"Player healed {healingAMount} HP , Current health : {currentHealth / maxHealth}");
+
+               //Uppdaterar här spelarens hälso tillstånd,
+    UpdateHealthState();
+
+    }
+
+    //En metod som uppdatera spelaren hälsotillstånds baserat på
+    //den nuvarande hälsan
+    private void UpdateHealthState()
+    {
+        HealthState newState;
+
+        //bestämmer det nya tillstondet baserat på 
+        //Mängden HP
+        if (currentHealth <= 0)
+        {
+            newState = HealthState.Death; // om Hp är lika med eller är mindre än 0, så är spelaren död
+        }
+        else if (currentHealth < maxHealth * 0.33f)
+        {
+            newState = HealthState.Ailing; // om Hp är under 33 procent
+
+        }
+        else
+        {
+            newState = HealthState.Alive;
+        }
+
+        //Om tillståndet förrändras, triggras detta evvent
+        //för då har det skett en förändring
+        if (newState != state)
+        {
+            state = newState;
+            //ivokar 
+            OnStateChange?.Invoke(state); //
+
+            Debug.Log($"Healthstate cahnged to {state}");
+
+        }
+    }
+
+    //Metod för att använda stamina, vilket minskar spelaren ´s enegri
+    //Denna mettod kallas när spealren gör något som förbrukar energi 
+    public void UseStamina(float stmAmount)
+    {
+        //Det går ite för denna metod att använda 0 stamina,
+        //dätmed so kommer metod returna ifall stmAmount är 0
+
+        if (stmAmount <= 0)
+        {
+            Debug.LogWarning("Stamina requirement not ");
+            return;
+
+        }
+
+        //minskar stamina
+        currentStamina -= stmAmount;
+
+        //jag säkkerställer h'r att stamina värdet aldrig går utanför rimliga värde. 
+        //går inte över max, går inte till minus
+        currentStamina = Mathf.Clamp(currentStamina,0,maxinumStamina);
+
+        // triggrar event onStaminachanged
+        OnStaminaChnge?.Invoke(currentStamina);
+
+        Debug.Log($"Stamina used : {stmAmount}, New stamina amout : {currentStamina}/{maxinumStamina}");
+
+    }
+
+    //Denna metod kallas från update varje frame.
+    //Tillåter en ölångsam återhämtning av stamina
+    //StaminaRegen styr hastighetn
+  private void RegenStamina()
+            {
+        ////Om stamina inte är full, så återhämtas den
+        if(currentStamina < maxinumStamina)
+        {
+            // ökar stmaina paserat på deltatime
+            currentStamina += staminaRegen * Time.deltaTime;
+
+            // säkkerställer att värdet allrig överstiger max
+            currentStamina = Mathf.Clamp(currentStamina,0,maxinumStamina);
+
+            //On
+            OnStaminaChnge.Invoke(currentStamina);
+        }
+
+            }
    
+    //Kontrollerar om spelaren har tillräckligt med stamina 
+    //Rettunerar om stamina överstiger kravvärdet
+
+    public bool HasSufficentStamina(float requiredAmount)
+    {
+        return currentStamina >= requiredAmount;
+    }
+
+   public void  UpdatePlayerHealthState()
+    {
+
+    }
+
+
+    //Kallas när en attack gör mer skada änn tresh
+    public void CreateWound(float damage)
+    {
+        //skappaet ett nytt object av sorten wound
+        Wound newWound = new Wound
+        {
+            //ger skadan ett unikt IFD
+            id = woundID++, //öknar ID räknaren
+            //blir inte  infekteran ännu
+            isInfected = false,
+        };
+
+        //LÄGGER TILL TILL LISTAN
+        wounds.Add(newWound);
+
+        //triggrar event
+        //
+        OnAdditionalWound?.Invoke(newWound);
+
+        //logg
+        Debug.Log($"New wound created, ID : {newWound.id}. DMG : {damage}, Tot wounds {wounds.Count}");
+
+        //retunerar lista med wound "sår" object 
+        public List<Wound> GetWounds()
+    {
+        return wounds;
+    }
+
+    //Hämtar antallet sår
+    //retunerar hur många sår spelaren har
+    public int GetCountOfWounds()
+    {
+        return wounds.Count;
+    }
+
+    //en metod för att även hämta alla infekterade sår, räknar egenom och 
+    public int GetCountInfectedWounds()
+    {
+        int count = 0;
+        //looper egenom hela listan
+        foreach (Wound wound in wounds)
+        {
+            if (wound.isInfected)
+            {
+                count++;
+            }
+
+
+        }
+        return count;
+    }
+
+    //lääker specifika sår 
+    //Tar bort ett sår från liostan
+
+    public void HealAWound(int idWound)
+    {
+        //söker upp såred med samma ID
+        Wound healThisWound = wounds.Find(w => w.id == idWound); ; //sö
+
+        if(healThisWound != null )
+        {
+            //HITTAT SÅR
+            //TAr bort det funna såret
+            wounds.Remove(healThisWound);
+
+            Debug.Log($"The wound {woundID} has healed and been removed");
+
+        } else
+        {
+            //hittades inte
+            Debug.LogWarning($"Could not match any woud to ID : {woundID}");
+        }
+    }
+    //Getter kod och Gettermetoder
+
 
     public List<Wound> GetWounds()
     {
