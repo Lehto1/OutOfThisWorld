@@ -4,7 +4,7 @@ using UnityEngine.AI;
 //Detta kommer vara bas scriptet för all AI rörelse i spelet
 //för insekter och människor
 
-public  abstract class AIPathfinding : MonoBehaviour
+public abstract class AIPathfinding : MonoBehaviour
 {
     [Header("Pathfinding")]
     //Skapar en navmesh variable.
@@ -26,12 +26,12 @@ public  abstract class AIPathfinding : MonoBehaviour
     //Dess acceleration
     [SerializeField] protected float aiAcc; // Acceleration
 
-    [Header("Tracking Info")] 
+    [Header("Tracking Info")]
 
     //Gör en referens till spelaren,
     //spelaren är AIs målposition
     //Spelarens Transform
-[SerializeField] protected Transform playerTransformTarget;
+    [SerializeField] protected Transform playerTransformTarget;
 
     //Variabel för Ains dekteterinsradie
     //Inom värdet utav denna radie kommer AIn kunna upptäcka spelaren 
@@ -93,18 +93,18 @@ public  abstract class AIPathfinding : MonoBehaviour
         NavMeshConfig();
         Findplayer();
         AIstateInit();
-      
+
     }
 
     protected virtual void NavMeshInit()
     {
 
     }
-   public virtual void  GetHealthCode()
+    public virtual void GetHealthCode()
     {
 
     }
-   public virtual void NavMeshConfig()
+    public virtual void NavMeshConfig()
     {
 
     }
@@ -112,7 +112,7 @@ public  abstract class AIPathfinding : MonoBehaviour
     {
 
     }
-   public virtual void  AIstateInit()
+    public virtual void AIstateInit()
     {
 
     }
@@ -120,6 +120,102 @@ public  abstract class AIPathfinding : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        //Uppdaterar först Ains timer
+        UpdateTimer();
+
+        //Kollar om det går att hitta spelaren 
+        LookForPlayer();
+
+        //Tar reda på avstånde mellan Ai och spelare
+        CheckDistToPlayer();
+
+        //Beslutar
+        Execute();
+
+        //Barnklassernas olika egenskaper
+        UniqueBehavior();
+
+
     }
+    //Uppdaterar först Ains timer
+    protected virtual void UpdateTimer()
+    {
+
+    }
+
+    //Kollar om det går att hitta spelaren 
+    protected virtual void LookForPlayer()
+    {
+
+    }
+
+    //Tar reda på avstånde mellan Ai och spelare
+    protected virtual void CheckDistToPlayer()
+    {
+
+    }
+
+    //Beslutar
+    protected virtual void Execute()
+    {
+
+    }
+
+    //bools
+    protected virtual bool IsINDetectionRadius()
+    {
+        return false;
+    }
+    protected virtual bool IsInFOV()
+    {
+        return false;
+    }
+    protected virtual bool InLineOfSight()
+    {
+        return false;
+    }
+    ///_----------------------------*//// Kommer senare lägga till en state logic här 
+    ///place holder för state logic .
+    ///
+    //Navigering
+    protected virtual void DecideNextWaypoint()
+    {
+        if (aiPatrolWaypoints == null || aiPatrolWaypoints.Length == 0)
+        {
+            return; // de finns inga
+            navAgent.SetDestination(aiPatrolWaypoints[aiPatrolWaypointsIndex].position); // Nav 
+        }
+    }
+
+    //navAgent börjar röra sig mor spelaren 
+    protected virtual void MoveTowardsPlayer()
+    {
+        if (playerTransformTarget != null)
+        {
+            navAgent.SetDestination(playerTransformTarget.position); // sätter 
+
+        }
+
+    }
+
+
+    //Barnklassernas olika egenskaper
+    protected abstract void UniqueBehavior();
+ 
+
+
 }
+
+//Börjat med Enum
+public enum AiState
+{
+    Idle, 
+    Patrol,
+    Chase,
+    Attack,
+     //Lägger kanske till tar kanske bort
+}
+
+//Barnklassernas olika egenskaper
+//  UniqueBehavior
+
