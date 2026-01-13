@@ -17,12 +17,12 @@ namespace Assets.Script
             speed = 4.5f; // Insekter är snabbare
         }
 
-        protected override void OnPathComplete()
-        {
+      //  protected override void OnPathComplete()
+       // {
             // Insekter dör när de når slutet
-            currentWaypointIndex = 0;
+          //  currentWaypointIndex = 0;
 
-        }
+      //  }
 
         public void TakeDamage(float damage)
         {

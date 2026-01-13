@@ -1,3 +1,4 @@
+using System.Threading;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -56,9 +57,27 @@ public abstract class AIPathfinding : MonoBehaviour
     [SerializeField] protected LayerMask obstacleLayer;
 
     [Header("AiState")]
-    public int ee = 1;
-    //Lägger till states senare;
-    //-------------------///
+    
+    /// Ains nuvarande "state"
+    //Det som AIn gör i stunden
+    protected AiState currentAIState = AiState.Idle; // Ai står still och 
+
+    //Variabel för det "state" som kom innan den nuvarande.
+
+    /// /förredetta tillståndet
+    /// 
+    protected AiState previousAIState;
+
+    //En bool flag som håller koll på om spelaren har blicigt upptäckt utav AI:N
+    //flag
+    protected bool detectedPlayer = false;
+
+    //Variabel som lagrar spelarens senast kända position.
+    //Denna varriablel uppdateras varje gång AI:n utav olika själ tappar bort spelaren
+    protected Vector3 mostRecentPlayerPOS;
+
+    protected float distanceToTarget;
+
 
     [Header("Patroling")]
 
@@ -74,42 +93,90 @@ public abstract class AIPathfinding : MonoBehaviour
     // 
     [SerializeField] protected float aiPointTole;
 
+    //eN TRACKER FÖR hur länge Ai:n har väntat vid en viss checkpoint
+    [SerializeField] protected float aiPointTImer;
+
 
     //Lämmanr tomt för nu, Fyller i senare
     public void Awake()
     {
+        //Hämtar navmesh-agenten
         NavMeshInit();
-        GetHealthCode(); //Hämtar 
+
+        //Skriver till konsollen
+        Debug.Log("lll");
         //Eventuell animation
         //Eventuellt ljud
-
-
     }
 
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    //initialiserar alla värden och letar/finner vart spelaren är
+
+ void Start()
     {
+        //Konfugurerar AI:ns "pathfinding" 
         NavMeshConfig();
+        //Söker upp och finner spelarens position 
         Findplayer();
+        //Initialiserar Ai:s skick/tillsåtmd
+        //Initialiserar spelarens start tillstånd
         AIstateInit();
 
-    }
+        Debug.Log($"AI Init, State : {currentAIState} Speed : {aiMovementSPeed} ");
 
+
+    }
+    //Initialiserar Navmesh Agenten
     protected virtual void NavMeshInit()
     {
+        //Hämtar agenten
+        navAgent = GetComponent<NavMeshAgent>();
 
-    }
-    public virtual void GetHealthCode()
-    {
+        // Ifall navAgenten finns kommer koden nedan inte att köras
+        if (navAgent == null)
+        {
+            Debug.LogError("The game does not have a NavMesh co");
+            enabled = false;
+            return;
 
+        }
+        Debug.Log("AIpathf required Navmesh ");
     }
+
+  //Konfigurerar NavMesh inställningar, sätter dessa till värdena utav klasses egna variabler nedan
+  //
     public virtual void NavMeshConfig()
     {
+        if (navAgent == null) return;
+
+        //Sätter Agentens hastighet till klassens vaiabels värde
+        navAgent.speed = aiMovementSPeed;
+
+        // gör det samma med rotationshastigheten
+        navAgent.angularSpeed = aiTurningSpeed;
+
+        //sätter dess acceleratio till samma värde som klassens variabel
+        navAgent.acceleration = aiAcc;
+
+        //sätt på agenten
+        navAgent.enabled = true;
+
+        Debug.Log($"navAget has been Configurated {gameObject.name} sPEED {navAgent.speed} TURNSPEED {navAgent.angularSpeed}");
+
 
     }
+    //Denna metod är till för att hitta spelaren 
     public virtual void Findplayer()
     {
+        //kolla om spelaren redan är markerad och funnen
+        //ifall den är det, Returernar koden
+        if(playerTransformTarget != null)
+        {
+            Debug.Log("Player already found, returning....");
+            return;
+        }
+
 
     }
     public virtual void AIstateInit()
