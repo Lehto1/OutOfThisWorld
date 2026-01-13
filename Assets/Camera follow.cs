@@ -6,16 +6,21 @@ public class Camerafollow : MonoBehaviour
     public Vector3 offset;        // Avstånd bakom/ovanför spelaren
     public float smoothSpeed = 5f;
 
-    void LateUpdate()
+    void Update()
     {
         // Önskad position bakom spelaren
-        Vector3 targetPosition = player.position + offset;
+        Vector3 targetPosition = player.position + 5 * -transform.forward;
 
+        // Kameran har samma rotation som spelaren
+        transform.rotation = player.rotation;
+
+        // Mjuk följning
         // Mjuk följning
         transform.position = Vector3.Lerp(
             transform.position,
             targetPosition,
             smoothSpeed * Time.deltaTime
         );
+
     }
 }

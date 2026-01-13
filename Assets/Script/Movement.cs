@@ -3,8 +3,8 @@ using UnityEngine.Experimental.GlobalIllumination;
 
 public class Movement : MonoBehaviour
 {
-    int Running = 1; //Variabel som ändrar på spelarens hastighet
-    bool Crouching = false; //Bool som bestämmer om spelaren crouchar eller inte
+    [SerializeField] int Running = 2; //Variabel som ändrar på spelarens hastighet
+    [SerializeField] bool Crouching = false; //Bool som bestämmer om spelaren crouchar eller inte
 
     Rigidbody RB;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -24,22 +24,22 @@ public class Movement : MonoBehaviour
     void MovementStuff() //Includes keybinds and code for moving the player
     {
         RB.angularVelocity = new Vector3(0, 0, 0);
-        RB.linearVelocity = new Vector3(0, 0, 0);
+        RB.linearVelocity = new Vector3(0, RB.linearVelocity.y, 0);
 
-        if (Input.GetKey(KeyCode.W) || Crouching == false) // If sats for att go bakåt och framåt när man står up
+        if (Input.GetKey(KeyCode.W) && Crouching == false) // If sats for att go bakåt och framåt när man står up
         {
             RB.linearVelocity = Running * transform.forward;
         }
-        else if (Input.GetKey(KeyCode.S) || Crouching == false)
+        else if (Input.GetKey(KeyCode.S) && Crouching == false)
         {
             RB.linearVelocity = Running * -transform.forward;
         }
 
-        if (Input.GetKey(KeyCode.W) || Crouching == true) // If sats for att go bakåt och framåt när man är crouching
+        if (Input.GetKey(KeyCode.W) && Crouching == true) // If sats for att go bakåt och framåt när man är crouching
         {
             RB.linearVelocity = transform.forward;
         }
-        else if (Input.GetKey(KeyCode.S) || Crouching == false)
+        else if (Input.GetKey(KeyCode.S) && Crouching == false)
         {
             RB.linearVelocity = -transform.forward;
         }
@@ -47,11 +47,11 @@ public class Movement : MonoBehaviour
 
         if (Input.GetKey(KeyCode.A)) //If sats för att rotera din käraktär
         {
-            RB.angularVelocity = new Vector3(0, -10, 0);
+            RB.angularVelocity = new Vector3(0, -2, 0);
         }
         else if (Input.GetKey(KeyCode.D))
         {
-            RB.angularVelocity = new Vector3(0, 10, 0);
+            RB.angularVelocity = new Vector3(0, 2, 0);
         }
     }
 
@@ -69,11 +69,11 @@ public class Movement : MonoBehaviour
 
     void IsCrouching()
     {
-        if (Input.GetKeyDown(KeyCode.LeftControl) || Crouching == false)
+        if (Input.GetKeyDown(KeyCode.LeftControl) && Crouching == false) //Gör så att man kan stänga av och sätta på crouching
         {
             Crouching = true;
         }
-        else if (Input.GetKeyDown(KeyCode.LeftControl) || Crouching == true)
+        else if (Input.GetKeyDown(KeyCode.LeftControl) && Crouching == true)
         {
             Crouching = false;
         }
