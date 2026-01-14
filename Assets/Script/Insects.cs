@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Assets.Script
 {
-    internal abstract class Insects : AIPathfinding
+    internal class Insects : AIPathfinding
     {
         [Header("InsectSettings")]
         [SerializeField] private int insectDMG = 5; //dess skada
@@ -19,16 +19,16 @@ namespace Assets.Script
             //insekten står stilla, gör inget 
             //väntar på händelser
             navAgent.velocity = Vector3.zero;
-            
+
         }
         protected override void ExecutePatrol()
         {
             //Undersöker om insekten har nått "waypointen" 
-            if(navAgent.remainingDistance < aiPointTole)
+            if (navAgent.remainingDistance < aiPointTole)
             {
                 //insekten har nu kommit tillräkligt nära waypointen för att det 
                 //det ska räknas att AI; har varit där 
-                if(aiPointTImer >= aiTimeAtPoint)
+                if (aiPointTImer >= aiTimeAtPoint)
                 {
                     //Börjar färd mot nästa waypoint
                     aiPatrolWaypointsIndex++;
@@ -48,9 +48,9 @@ namespace Assets.Script
                     Debug.Log($"THe insect {gameObject.name} moving to its next waypoint : {aiPatrolWaypointsIndex}");
 
 
+                }
             }
         }
-    }
 
         protected override void ExecuteChase()
         {
@@ -63,15 +63,30 @@ namespace Assets.Script
                 //uppdateras destinationen till den aktuella spelarpositionen
                 navAgent.SetDestination(playerTransformTarget.position);
             }
-            
+
 
             //kollar om insekten äär nära nog spelaren för att mangla 
-            if(distanceToTarget <= aiAttackRadius)
+            if (distanceToTarget <= aiAttackRadius)
             {
                 ChangeState(AiState.Attack);
             }
 
-            }
+        }
+        
+    
+    protected override void ExecuteAttack()
+        {
+
+        }
+        protected override void ExecuteDeath()
+        {
+
+        }
+        //Barnklassernas olika egenskaper
+        protected override void UniqueBehavior()
+        {
+
         }
 
+    }
     }
