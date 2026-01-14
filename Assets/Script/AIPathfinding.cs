@@ -1,6 +1,7 @@
 using System.Threading;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.XR;
 
 //Detta kommer vara bas scriptet för all AI rörelse i spelet
 //för insekter och människor
@@ -77,6 +78,8 @@ public abstract class AIPathfinding : MonoBehaviour
     protected Vector3 mostRecentPlayerPOS;
 
     protected float distanceToTarget;
+
+    protected float stateTimer;
 
 
     [Header("Patroling")]
@@ -177,27 +180,74 @@ public abstract class AIPathfinding : MonoBehaviour
             return;
         }
 
+        //söker efters spelar taggen
+        GameObject playerOBJ = GameObject.FindGameObjectWithTag("Player");
+        if (playerOBJ != null)
+        {
+            //sätter ai:n target position till spelar objektets transform
+            playerTransformTarget = playerOBJ.transform;
 
-    }
+            Debug.Log($"Player was found by tag{playerOBJ.name}");
+        }
+        else
+        {
+            //Debuggr
+            Debug.LogWarning($"Player could no be found");
+          
+        }
+
+        }
+
+    //En emtod som initialiserar AI:ns start tillstånd
     public virtual void AIstateInit()
     {
+        //Kollar först ifall det finns waypoints
+        if (aiPatrolWaypoints != null && aiPatrolWaypoints.Length > 0)
+        {
+            //Efter som koden har några waypoints utsatta, så kan Ai:n nu börja patrullera
+            ChangeState(AiState.Patrol);  //byter AI tillstånd
+            DecideNextWaypoint();
+            Debug.Log($"Ai kommer starta I sitt patrullerings tillstånd");
 
+        }
+        else
+        {
+            //AI:n kommer förbli Idle 
+            //Eftersom det inte finns några punkter för AI:n att gå efter
+            ChangeState(AiState.Idle);
+            Debug.Log("AI will start in IDLE");
+
+        }
+
+    
     }
+
 
     // Update is called once per frame
     void Update()
     {
+        //Hoppar över update om AI:n är död
+        if (currentAIState == AiState.Dead) return;
+
         //Uppdaterar först Ains timer
+        //alla timers
         UpdateTimer();
 
-        //Kollar om det går att hitta spelaren 
-        LookForPlayer();
 
-        //Tar reda på avstånde mellan Ai och spelare
+
+        //Beräknar avstånd mellan Ai och spelare
         CheckDistToPlayer();
 
-        //Beslutar
-        Execute();
+        //Kollar om det går att hitta spelaren 
+    //  Ai:n kollar om det går att se splelaren
+        LookForPlayer();
+
+        //updaterar och kollar väntetiden vid punkten
+        UpdatePointWaitTimer();
+
+        //A:n Beslutar 
+        //statelogic;
+               Execute();
 
         //Barnklassernas olika egenskaper
         UniqueBehavior();
@@ -205,48 +255,207 @@ public abstract class AIPathfinding : MonoBehaviour
 
     }
     //Uppdaterar först Ains timer
+    //TImern öker så länge ai:n beffineer sig i ett vist tillstånd.
     protected virtual void UpdateTimer()
     {
+      stateTimer  += Time.deltaTime;
 
     }
 
+    
+    //uPPDATERAR OCKSÅ VÄNTETIMERN VID VARJE POINT  
+protected virtual void UpdatePointWaitTimer()
+    {
+        if(currentAIState == AiState.Patrol)
+        {
+            //ifall Ai:n patrulerar ökas timern på
+            aiPointTImer += Time.deltaTime;
+        }
+
+    }
+
+    //En metod där AI:n kommer kolla om det går att se / upptäcka spelaren
     //Kollar om det går att hitta spelaren 
     protected virtual void LookForPlayer()
     {
+        //Kommer retunera ifall spelaren inte är korrekt kopplad till koden
+        if (playerTransformTarget == null) return;
 
+        //skapar 3 st boolean flags för att bättre kunna kontrolera alla vilkor
+        bool inAIFOV = IsInFOV(); //sYNFÄLT
+        bool inAiRange = IsINDetectionRadius(); //
+        bool hasSight = InLineOfSight();
+
+        //KOMBINER ALLA TRE TILL EN ENDA BOOL FLAG
+        //En flag för när spelaren är upptäckbar
+        bool AiCanSeePlayer = inAiRange && inAIFOV && hasSight;
+
+        //detektion 
+        if (AiCanSeePlayer && !detectedPlayer) //om ai:n ser spelarn och so
+        {
+            //Ai uppyäcker spelarn
+            detectedPlayer = true;
+            mostRecentPlayerPOS = playerTransformTarget.position;
+
+            Debug.Log($"Player detected");
+
+            //byter Ai:s tillstpnd
+            //bör nu börja jaga spelaren
+            ChangeState(AiState.Chase);
+
+        }
+        else if (!AiCanSeePlayer && detectedPlayer)
+        {
+            //Ai har inte lägre spelaren i sikte
+            detectedPlayer = false;
+
+            Debug.Log($"AI {gameObject.name} lost sight of the player");
+
+            //ifall Ai:n inte längre ser spelaren, ska AI: gå till spelarens senast kända 
+            //position
+            ChangeState(AiState.Chase);
+
+        }
+
+        //Updapdate senast kända Pos
+        if (detectedPlayer && playerTransformTarget != null)
+        {
+            //updaterar poitionen till splearpositionen
+            mostRecentPlayerPOS = playerTransformTarget.position;
+
+        }
     }
 
+    //beräknar avståndet mellan spelare och och AI:n
+
     //Tar reda på avstånde mellan Ai och spelare
+    // Ai:n kommer 
     protected virtual void CheckDistToPlayer()
     {
+        if (playerTransformTarget == null) // När det inte finns någon position , ingen spelare
+        {
+            distanceToTarget = Mathf.Infinity;
+            return; 
+        }
+        //sätter distance to target till ett kalkulerat värde Vector3 distance mellan positionerna
+        distanceToTarget = Vector3.Distance(transform.position, playerTransformTarget.position);
+        
 
     }
 
     //Beslutar
-    protected virtual void Execute()
-    {
-
-    }
+   
 
     //bools
+    //En bool för om spelaren är inom AI:ns dektektionsradie
+
     protected virtual bool IsINDetectionRadius()
     {
-        return false;
+        //om spelaren inte finns, befinner den sig automatiskt utanför radien
+        if (playerTransformTarget == null) return false;
+
+        //flag för om spelaren är nära nog
+        bool inRange = distanceToTarget <= aiRadiusOfDetection; //ny 
+
+        return inRange;
+        //
+        
     }
+
+    //En bool för om spelaren är inOM AI:s synfält 
+    
     protected virtual bool IsInFOV()
     {
-        return false;
+
+       if(playerTransformTarget == null) return false; // Fings inngne
+
+        //beräknar riktning utfrpn hur spelaren position förhåller sig till  AI:n
+        Vector3 dirrToTarget = (playerTransformTarget.position - transform.position).normalized;
+
+        //beräknar en vinkel utifrån ovanståande
+        float aiAngleToTarge = Vector3.Angle(transform.forward, dirrToTarget);
+
+        // en flag bool för att kolla om AI:n kan see spelaren in dens FOV 
+        bool inFov = aiAngleToTarge <= aiFOV / 2f; //utifrån ovanstående
+
+        return inFov;
     }
+
+    //Kan AI se spelaren, //kan ai 
+    //håller koll så att det int finns object i vägen, för då syns inte spelaren
+    //använder raycast strålar för att kolla om det stämmer eller ej
+    //
     protected virtual bool InLineOfSight()
     {
-        return false;
+        //valliderar, kontrolerar att spelaren finns
+        //om spelaren inte finns retunar koden false
+        //kan då iint egöra raycast
+        if(playerTransformTarget == null) return false;
+
+        //raycastar från mitten av AI modelen. 
+        //inte vid basen
+        //flyttar up positonen med en vector3 för att inte hamna för nära marken
+        Vector3 aiSightPos = transform.position + Vector3.up * 1.5f;
+
+        //skickar raycast strålar mot spelarens POS
+        Vector3 playerTargetPOS = playerTransformTarget.position + Vector3.up * 1f;
+
+        //beräknar riktningen och avståndet för raycast
+        //villen riktning 
+        //hur långt strålen ska färdas
+
+        //beräknar vektor mella AI och spelare
+        Vector3 aiDirectionToPlayer = (playerTargetPOS - aiSightPos).normalized;
+        //får bara riktningen eftersom jag använde normalized
+
+        //här beräknar jag det faktiska avstånde melllan taycastens start ochs lutpunkter
+        float distToCheckk = Vector3.Distance(aiSightPos,playerTargetPOS);
+
+        //Skapar raycast 
+        RaycastHit raycastHit;
+        bool somethinfHasBeenHitByRC = Physics.Raycast(aiSightPos, aiDirectionToPlayer, out raycastHit, distToCheckk, obstacleLayer); //Dess start position,riktning,resultat, hur långt att färdas, lager att
+
+        //om raycasten träffade något
+        //kollar Ai:n vad det är som raycasten träffade
+        //Om Ai:n ser spelaren, retuneras True, vilket betyder att det går att se spelaren
+        //oM Ai:n inte ser. eller kollar in i en vägg så kommer koden att retunera false. vilket betyder att spelrn inte syns
+        if (somethinfHasBeenHitByRC)
+        {
+            //kollar vad det var som träffades av raycast 
+
+            //jämför det träffade objectets transform med splerans för att kolla om strålen landade rätt
+            if (raycastHit.transform == playerTransformTarget)
+            {
+                //STRÅLEN TRÄFFADE Spelaren
+                //Ai:n kan 
+                //se spelaren
+                return true;
+            }
+            else
+            {
+                //strålen träffade ngot objekt, 
+                //traffade vägg eller hinder
+                return false;
+            }
+
+        }
+        else
+        {
+            //När rayvast inte träffat något alls
+            //fri sikt
+            return true;
+        }
     }
+
     ///_----------------------------*//// Kommer senare lägga till en state logic här 
     ///place holder för state logic .
     ///
     //Navigering
+
+    //NAVIGERING
     protected virtual void DecideNextWaypoint()
     {
+
         if (aiPatrolWaypoints == null || aiPatrolWaypoints.Length == 0)
         {
             return; // de finns inga
@@ -264,6 +473,17 @@ public abstract class AIPathfinding : MonoBehaviour
         }
 
     }
+    /// <summary>
+
+    //sTATECHANGER, //Byter Ai:s tillstånd 
+    protected virtual void ChangeState(AiState newState)
+    {
+
+    }
+    protected virtual void Execute()
+    {
+        
+    }
 
 
     //Barnklassernas olika egenskaper
@@ -280,6 +500,7 @@ public enum AiState
     Patrol,
     Chase,
     Attack,
+    Dead,
      //Lägger kanske till tar kanske bort
 }
 
