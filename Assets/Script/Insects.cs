@@ -379,6 +379,28 @@ namespace Assets.Script
 
         }
 
+        private void CompletInsectHop()
+        {
+            // checka om insekten fortfarande hoppar 
+            if(!isCurrentlyJumping || rigidbody1 == null)
+            {
+                return;
+            }
+
+            //bromsar in AI:n  när det landar på marken igen
+            //drar cirka 30% utav dess hstighet 
+            rigidbody1.linearVelocity = new Vector3(
+            rigidbody1.linearVelocity.x * 0.3f, 0f, rigidbody1.linearVelocity.z * 0.3f); // minskar  x och Z ,
+
+            //sätter hopp flag:en på flase
+            isCurrentlyJumping = false;
+
+            //Nollstället Hopptidtagning
+            jumpTimer = jumpingCooldown;
+            
+            Debug.Log($"{gameObject.name} has landed");
+        }
+
     
         private Vector3 CalculateAiHopTarget()
         {
