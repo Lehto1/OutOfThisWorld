@@ -47,11 +47,11 @@ public class Movement : MonoBehaviour
 
         if (Input.GetKey(KeyCode.A)) //If sats för att rotera din käraktär
         {
-            RB.angularVelocity = new Vector3(0, -2, 0);
+            RB.angularVelocity = new Vector3(0, -4, 0);
         }
         else if (Input.GetKey(KeyCode.D))
         {
-            RB.angularVelocity = new Vector3(0, 2, 0);
+            RB.angularVelocity = new Vector3(0, 4, 0);
         }
     }
 
