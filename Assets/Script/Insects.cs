@@ -23,6 +23,8 @@ namespace Assets.Script
         }
         protected override void ExecutePatrol()
         {
+            //sätter NavAgentens destination 
+            navAgent.SetDestination(aiPatrolWaypoints[aiPatrolWaypointsIndex].position);
             //Undersöker om insekten har nått "waypointen" 
             if (navAgent.remainingDistance < aiPointTole)
             {
@@ -72,7 +74,7 @@ namespace Assets.Script
             }
 
         }
-        
+       
     
     protected override void ExecuteAttack()
         {

@@ -553,7 +553,10 @@ protected virtual void UpdatePointWaitTimer()
 
     }
     //Barnklassernas olika egenskaper
-    protected abstract void UniqueBehavior();
+    protected virtual void UniqueBehavior()
+    {
+
+    }
  
 
 
