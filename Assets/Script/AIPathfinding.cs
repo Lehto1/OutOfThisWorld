@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Threading;
 using UnityEngine;
 using UnityEngine.AI;
@@ -107,7 +108,7 @@ public abstract class AIPathfinding : MonoBehaviour
         NavMeshInit();
 
         //Skriver till konsollen
-        Debug.Log("lll");
+      //  Debug.Log("lll");
         //Eventuell animation
         //Eventuellt ljud
     }
@@ -116,17 +117,18 @@ public abstract class AIPathfinding : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     //initialiserar alla värden och letar/finner vart spelaren är
 
- void Start()
+ protected virtual void Start()
     {
         //Konfugurerar AI:ns "pathfinding" 
         NavMeshConfig();
         //Söker upp och finner spelarens position 
         Findplayer();
+
         //Initialiserar Ai:s skick/tillsåtmd
         //Initialiserar spelarens start tillstånd
         AIstateInit();
 
-        Debug.Log($"AI Init, State : {currentAIState} Speed : {aiMovementSPeed} ");
+        UnityEngine.Debug.Log($"AI Init, State : {currentAIState} Speed : {aiMovementSPeed} ");
 
 
     }
@@ -139,12 +141,12 @@ public abstract class AIPathfinding : MonoBehaviour
         // Ifall navAgenten finns kommer koden nedan inte att köras
         if (navAgent == null)
         {
-            Debug.LogError("The game does not have a NavMesh co");
+            UnityEngine.Debug.LogError("The game does not have a NavMesh co");
             enabled = false;
             return;
 
         }
-        Debug.Log("AIpathf required Navmesh ");
+        UnityEngine.Debug.Log("AIpathf required Navmesh ");
     }
 
   //Konfigurerar NavMesh inställningar, sätter dessa till värdena utav klasses egna variabler nedan
@@ -165,7 +167,7 @@ public abstract class AIPathfinding : MonoBehaviour
         //sätt på agenten
         navAgent.enabled = true;
 
-        Debug.Log($"navAget has been Configurated {gameObject.name} sPEED {navAgent.speed} TURNSPEED {navAgent.angularSpeed}");
+        UnityEngine.Debug.Log($"navAget has been Configurated {gameObject.name} sPEED {navAgent.speed} TURNSPEED {navAgent.angularSpeed}");
 
 
     }
@@ -176,7 +178,7 @@ public abstract class AIPathfinding : MonoBehaviour
         //ifall den är det, Returernar koden
         if(playerTransformTarget != null)
         {
-            Debug.Log("Player already found, returning....");
+            UnityEngine.Debug.Log("Player already found, returning....");
             return;
         }
 
@@ -187,12 +189,12 @@ public abstract class AIPathfinding : MonoBehaviour
             //sätter ai:n target position till spelar objektets transform
             playerTransformTarget = playerOBJ.transform;
 
-            Debug.Log($"Player was found by tag{playerOBJ.name}");
+            UnityEngine.Debug.Log($"Player was found by tag{playerOBJ.name}");
         }
         else
         {
             //Debuggr
-            Debug.LogWarning($"Player could no be found");
+            UnityEngine.Debug.LogWarning($"Player could no be found");
           
         }
 
@@ -207,7 +209,7 @@ public abstract class AIPathfinding : MonoBehaviour
             //Efter som koden har några waypoints utsatta, så kan Ai:n nu börja patrullera
             ChangeState(AiState.Patrol);  //byter AI tillstånd
             DecideNextWaypoint();
-            Debug.Log($"Ai kommer starta I sitt patrullerings tillstånd");
+            UnityEngine.Debug.Log($"Ai kommer starta I sitt patrullerings tillstånd");
 
         }
         else
@@ -215,7 +217,7 @@ public abstract class AIPathfinding : MonoBehaviour
             //AI:n kommer förbli Idle 
             //Eftersom det inte finns några punkter för AI:n att gå efter
             ChangeState(AiState.Idle);
-            Debug.Log("AI will start in IDLE");
+            UnityEngine.Debug.Log("AI will start in IDLE");
 
         }
 
@@ -245,9 +247,15 @@ public abstract class AIPathfinding : MonoBehaviour
         //updaterar och kollar väntetiden vid punkten
         UpdatePointWaitTimer();
 
+        //Uppdaterar AttackCooldown timern
+        //Minskar timern mot 0 vilket först då tillåter nästa attack
+
+        //reducerar timer
+        
+
         //A:n Beslutar 
         //statelogic;
-               Execute();
+        Execute();
 
         //Barnklassernas olika egenskaper
         UniqueBehavior();
@@ -258,7 +266,7 @@ public abstract class AIPathfinding : MonoBehaviour
     //TImern öker så länge ai:n beffineer sig i ett vist tillstånd.
     protected virtual void UpdateTimer()
     {
-      stateTimer  += Time.deltaTime;
+      stateTimer += Time.deltaTime;
 
     }
 
@@ -297,7 +305,7 @@ protected virtual void UpdatePointWaitTimer()
             detectedPlayer = true;
             mostRecentPlayerPOS = playerTransformTarget.position;
 
-            Debug.Log($"Player detected");
+            UnityEngine.Debug.Log($"Player detected");
 
             //byter Ai:s tillstpnd
             //bör nu börja jaga spelaren
@@ -309,7 +317,7 @@ protected virtual void UpdatePointWaitTimer()
             //Ai har inte lägre spelaren i sikte
             detectedPlayer = false;
 
-            Debug.Log($"AI {gameObject.name} lost sight of the player");
+            UnityEngine.Debug.Log($"AI {gameObject.name} lost sight of the player");
 
             //ifall Ai:n inte längre ser spelaren, ska AI: gå till spelarens senast kända 
             //position
@@ -459,8 +467,9 @@ protected virtual void UpdatePointWaitTimer()
         if (aiPatrolWaypoints == null || aiPatrolWaypoints.Length == 0)
         {
             return; // de finns inga
-            navAgent.SetDestination(aiPatrolWaypoints[aiPatrolWaypointsIndex].position); // Nav 
+           
         }
+        navAgent.SetDestination(aiPatrolWaypoints[aiPatrolWaypointsIndex].position); // Nav 
     }
 
     //navAgent börjar röra sig mor spelaren 
@@ -474,20 +483,89 @@ protected virtual void UpdatePointWaitTimer()
 
     }
     /// <summary>
+    /// 
+
 
     //sTATECHANGER, //Byter Ai:s tillstånd 
     protected virtual void ChangeState(AiState newState)
     {
+        //gör ingeting om det nuvarnade tillstååndet är det samma som det nya
+        if(currentAIState == newState)
+        {
+            return;
+        }
+
+        //det gamla, förredetta tillståndet uppdateras
+        previousAIState = currentAIState;
+
+        //uppdatera  det nuvarande till det nya tillståndet
+        currentAIState = newState;
+
+        stateTimer = 0f; // eftersom koden har bytt 
+
+        //nollställer även waypoint timern
+        aiPointTImer = 0f;
+
+        UnityEngine.Debug.Log($"AI {gameObject.name} has changed state from {previousAIState} to {currentAIState} ");
 
     }
+
+    //huvud metod 
+    //Kör  logic baserat på tillstånd
+
+    
     protected virtual void Execute()
     {
-        
+        //switchar baserat på nuvarande tillstånd
+        switch(currentAIState) 
+        {
+            case AiState.Idle: //Vid Idle
+                ExecuteIdle();
+                break;
+            case AiState.Patrol: //vid patrullering
+                ExecutePatrol();
+                break;
+            case AiState.Chase: // Vid jakt
+                ExecuteChase();
+                break;
+            case AiState.Attack: // Vid attack
+                ExecuteAttack();
+                break;
+            case AiState.Dead: // Vid död
+                ExecuteDeath();
+                break;
+
+            default: break; //inget
+        }
+    }
+    
+    //helper metoder som ska implementeras och fyllas utav barnklasserna
+  protected virtual void  ExecuteIdle()
+    {
+
+    }
+    protected virtual void ExecutePatrol()
+    {
+
+    }
+    protected virtual void ExecuteChase()
+    {
+
     }
 
+    protected virtual void ExecuteAttack()
+    {
 
+    }
+    protected virtual void ExecuteDeath()
+    {
+
+    }
     //Barnklassernas olika egenskaper
-    protected abstract void UniqueBehavior();
+    protected virtual void UniqueBehavior()
+    {
+
+    }
  
 
 

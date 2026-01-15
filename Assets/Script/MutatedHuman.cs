@@ -1,4 +1,4 @@
-Ôªøusing System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -8,24 +8,24 @@ using UnityEngine;
 
 namespace Assets.Script
 {
-    internal class Insects : AIPathfinding
+    internal class MutatedHuamn : AIPathfinding
     {
-        [Header("Insect Health")]
-        [SerializeField] private float maxAIInsectHP = 50f; // Max hp f√∂r AI insekten
+        [Header("Mutant Health")]
+        [SerializeField] private float maxAIInsectHP = 50f; // Max hp fˆr AI insekten
 
         private float currentInsectHP;
 
         [Header("InsectSettings Attack")]
         //dess definiera hur kraftig fienden attack kommer vara
         [SerializeField] private float aiDMG = 15f; //dess bass skada
-        [SerializeField] private float aiDMGVariation = 6; // Allts√• +- 6 skada
+        [SerializeField] private float aiDMGVariation = 6; // AlltsÂ +- 6 skada
         [SerializeField] private float aiAttackCoolDown = 1.5f; // co0ldown
 
         private float aiAttackTimer = 0f; //tidtagning
-                                              //Referens till H√§lskoden
-                                              //Ai:n m√•ste f√• tillg√•ng till koden s√• att det g√•r att attackera spelare
-                                              //
-       [SerializeField] private HealthScript playerHealth;
+                                          //Referens till H‰lskoden
+                                          //Ai:n mÂste fÂ tillgÂng till koden sÂ att det gÂr att attackera spelare
+                                          //
+        [SerializeField] private HealthScript playerHealth;
 
         [Header("Wound and VIrus")]
 
@@ -39,11 +39,11 @@ namespace Assets.Script
 
 
         //Initierar AI:s attacksystem
-        //Anropas fr√•n start och hittar spelarens Health och Virus koder 
+        //Anropas frÂn start och hittar spelarens Health och Virus koder 
         protected virtual void InitializeAttack()
         {
-            //Kontrollerar att spelaren √§r funnen
-            //s√§tter target transform 
+            //Kontrollerar att spelaren ‰r funnen
+            //s‰tter target transform 
             Findplayer();
 
             //om null, hittades inte spelaren
@@ -53,35 +53,37 @@ namespace Assets.Script
                 return; //avbryter
             }
 
-            //Letar efter Healthscript p√• samma GameObject som spelaren 
-            //anv√§nder Getcompnent f√∂r att hitta playerhealth
-           playerHealth = playerTransformTarget.GetComponent<HealthScript>();
+            //Letar efter Healthscript pÂ samma GameObject som spelaren 
+            //anv‰nder Getcompnent fˆr att hitta playerhealth
+            playerHealth = playerTransformTarget.GetComponent<HealthScript>();
 
-            //g√∂r en s√§kerhetskontroll 
+            //gˆr en s‰kerhetskontroll 
             if (playerHealth == null)
             {
                 Debug.LogError($" Critical failure:  {playerTransformTarget} lack a HealthScript");
                 return; //
             }
 
-            Debug.Log($"{gameObject.name} Healthscript found"); 
+            Debug.Log($"{gameObject.name} Healthscript found");
 
-            //Viruskoden sitter p√• samma object som h√§lsan ovan
-            //Om viruset inte finns s√• kan ai:n inte infektera
+            //Viruskoden sitter pÂ samma object som h‰lsan ovan
+            //Om viruset inte finns sÂ kan ai:n inte infektera
             playerVirusHandling = playerTransformTarget.GetComponent<VirusHandlingScript>();
 
             if (playerVirusHandling == null)
             {
                 Debug.LogWarning($"{gameObject.name} Player lacks Virushandler");
-                //Retunerar inte h√§r d√• AI:n forfarande kan attakera √§ven om den saknas
-            } else {
+                //Retunerar inte h‰r dÂ AI:n forfarande kan attakera ‰ven om den saknas
+            }
+            else
+            {
 
                 Debug.Log($"{gameObject.name} VirusHandler found, AI can infect wounds");
 
             }
 
-            //s√§tter timern till ett initial v√§rde
-            //b√∂rjar med cooldown m√•ste 
+            //s‰tter timern till ett initial v‰rde
+            //bˆrjar med cooldown mÂste 
 
             aiAttackTimer = aiAttackCoolDown;
             Debug.Log($"{gameObject.name} attack-system fully set up , DMG : {aiDMG} cOOLDOW : {aiAttackCoolDown}");
@@ -89,31 +91,32 @@ namespace Assets.Script
 
         }
 
-        //Skapar en startmeto f√∂r att anropa metoden ovan i 
+        //Skapar en startmeto fˆr att anropa metoden ovan i 
         protected override void Start()
         {
-            base.Start(); // Annropar f√∂r√§lderns start f√∂rst
+            base.Start(); // Annropar fˆr‰lderns start fˆrst
 
             //initialiserar Hp
             currentInsectHP = maxAIInsectHP;
-            //s√§tter till max
-           
-           //Initialiserar attacksystemet
+            //s‰tter till max
+
+            //Initialiserar attacksystemet
             InitializeAttack();
 
             Debug.Log($"Current {gameObject.name} HP : {currentInsectHP}/{maxAIInsectHP}");
         }
 
-        //En public metod s√• att spelarn kan skada insekten
+        //En public metod sÂ att spelarn kan skada insekten
         public void TakeDamage(float damage)
         {
 
-            currentInsectHP -= damage; // skader dess h√§lsa
-            currentInsectHP = Mathf.Max(0, currentInsectHP); // V√§rdet kan aldrig g√• under noll
+            currentInsectHP -= damage; // skader dess h‰lsa
+            currentInsectHP = Mathf.Max(0, currentInsectHP); // V‰rdet kan aldrig gÂ under noll
 
-            //ifall Insekten har leka med eller mindre √§n 0 Hp , s√• d√∂r den
-            if (currentInsectHP <= 0) {
-                Dead(); //d√∂dar inskekten
+            //ifall Insekten har leka med eller mindre ‰n 0 Hp , sÂ dˆr den
+            if (currentInsectHP <= 0)
+            {
+                Dead(); //dˆdar inskekten
             }
         }
         //updaterar attackerings timern
@@ -121,45 +124,45 @@ namespace Assets.Script
         {
             base.UpdateTimer();
 
-            //ifall Ai timern  √§r st√∂rre √§n 0 
-            //r√§knar koden ner till noll
+            //ifall Ai timern  ‰r stˆrre ‰n 0 
+            //r‰knar koden ner till noll
             if (aiAttackTimer > 0f)
             {
-                aiAttackTimer -= Time.deltaTime; //nedr√§kning
+                aiAttackTimer -= Time.deltaTime; //nedr‰kning
             }
         }
 
         protected override void ExecuteIdle()
         {
-            //insekten st√•r stilla, g√∂r inget 
-            //v√§ntar p√• h√§ndelser
+            //insekten stÂr stilla, gˆr inget 
+            //v‰ntar pÂ h‰ndelser
             navAgent.velocity = Vector3.zero;
 
         }
         protected override void ExecutePatrol()
         {
-            //s√§tter NavAgentens destination 
+            //s‰tter NavAgentens destination 
             navAgent.SetDestination(aiPatrolWaypoints[aiPatrolWaypointsIndex].position);
-            //Unders√∂ker om insekten har n√•tt "waypointen" 
+            //Undersˆker om insekten har nÂtt "waypointen" 
             if (navAgent.remainingDistance < aiPointTole)
             {
-                //insekten har nu kommit tillr√§kligt n√§ra waypointen f√∂r att det 
-                //det ska r√§knas att AI; har varit d√§r 
+                //insekten har nu kommit tillr‰kligt n‰ra waypointen fˆr att det 
+                //det ska r‰knas att AI; har varit d‰r 
                 if (aiPointTImer >= aiTimeAtPoint)
                 {
-                    //B√∂rjar f√§rd mot n√§sta waypoint
+                    //Bˆrjar f‰rd mot n‰sta waypoint
                     aiPatrolWaypointsIndex++;
 
-                    //Om Ai:n har passerat alla waypoints , ska det g√• tilbaka till den f√∂rsta startpunkten
+                    //Om Ai:n har passerat alla waypoints , ska det gÂ tilbaka till den fˆrsta startpunkten
                     if (aiPatrolWaypointsIndex >= aiPatrolWaypoints.Length)
                     {
                         aiPatrolWaypointsIndex = 0;
 
                     }
-                    //st√§ller om timern
+                    //st‰ller om timern
                     aiPointTImer = 0f;
 
-                    //best√§m n√§sta waypoint
+                    //best‰m n‰sta waypoint
                     DecideNextWaypoint();
 
                     Debug.Log($"THe insect {gameObject.name} moving to its next waypoint : {aiPatrolWaypointsIndex}");
@@ -171,10 +174,10 @@ namespace Assets.Script
 
         protected override void ExecuteChase()
         {
-            // b√∂rjar r√∂ra sig mot spelarens senas k√§nda pos
+            // bˆrjar rˆra sig mot spelarens senas k‰nda pos
             navAgent.SetDestination(mostRecentPlayerPOS);
 
-            //ifall insekten f√•r syn p√• spelaren s√•..
+            //ifall insekten fÂr syn pÂ spelaren sÂ..
             if (detectedPlayer && playerTransformTarget != null)
             {
                 //uppdateras destinationen till den aktuella spelarpositionen
@@ -182,62 +185,62 @@ namespace Assets.Script
             }
 
 
-            //kollar om insekten √§√§r n√§ra nog spelaren f√∂r att mangla 
+            //kollar om insekten ‰‰r n‰ra nog spelaren fˆr att mangla 
             if (distanceToTarget <= aiAttackRadius)
             {
                 ChangeState(AiState.Attack);
             }
 
         }
-       
-    
-    protected override void ExecuteAttack()
+
+
+        protected override void ExecuteAttack()
         {
-            //G√∂r en s√§kerhetkontroll 
-            //kollar om det finns ett h√§lsosystem
+            //Gˆr en s‰kerhetkontroll 
+            //kollar om det finns ett h‰lsosystem
             if (playerHealth == null)
             {
                 Debug.LogError($" {gameObject.name} Playerhealth is null,");
-                return; // abryter d√• h√§lskoden inte finns
+                return; // abryter dÂ h‰lskoden inte finns
             }
 
-            //En till kontroll , kOllar ifall attack cooldownen √§r f√§rdig
-            if(aiAttackTimer > 0f)
+            //En till kontroll , kOllar ifall attack cooldownen ‰r f‰rdig
+            if (aiAttackTimer > 0f)
             {
-                return; // cooldownen p√•g√•r forfarande, v√§ntar ....
+                return; // cooldownen pÂgÂr forfarande, v‰ntar ....
             }
 
-            //Tredje kontroll, Kollar om spelaren √§r inom attackeringsradien
-            if(distanceToTarget > aiAttackRadius)
+            //Tredje kontroll, Kollar om spelaren ‰r inom attackeringsradien
+            if (distanceToTarget > aiAttackRadius)
             {
-                //Kommer √•terg√• till jakt tills√•tnden om AI:n √§r l√§ngre bort
+                //Kommer ÂtergÂ till jakt tillsÂtnden om AI:n ‰r l‰ngre bort
                 return;
             }
 
-            //Ber√§knar skadan med den applicerade variationen
-            float rndVariation = UnityEngine.Random.Range(-aiDMGVariation,aiDMGVariation);
+            //Ber‰knar skadan med den applicerade variationen
+            float rndVariation = UnityEngine.Random.Range(-aiDMGVariation, aiDMGVariation);
             float finalDMG = aiDMG + rndVariation; // den totala DMG
-            
-            //Minimi 1 skada
-            finalDMG = Mathf.Max(finalDMG,minimumDMGperAttack);
 
-            //Applicerar skadan p√• spelaren 
+            //Minimi 1 skada
+            finalDMG = Mathf.Max(finalDMG, minimumDMGperAttack);
+
+            //Applicerar skadan pÂ spelaren 
             playerHealth.ApplyDMG(finalDMG);
-            
+
             Debug.Log($" {gameObject.name} Attacking with {finalDMG} DMG, Player HP {playerHealth.CurrentHP}/{playerHealth.MaxHP}");
 
-            //H√§r kommer AI:n f√∂rs√∂ka inficera s√•r givet att attacken var stark nog 
+            //H‰r kommer AI:n fˆrsˆka inficera sÂr givet att attacken var stark nog 
             if (finalDMG >= 5f && UnityEngine.Random.value < infectionChance)
             {
                 //
                 if (playerVirusHandling != null)
                 {
-                    //H√§mtar listan √∂var alla s√•r
-                    List<Wound>  allWounds = playerHealth.GetWounds(); 
+                    //H‰mtar listan ˆvar alla sÂr
+                    List<Wound> allWounds = playerHealth.GetWounds();
 
-                    if(allWounds != null && allWounds.Count > 0)
+                    if (allWounds != null && allWounds.Count > 0)
                     {
-                        //Infektera det senaste s√•ret 
+                        //Infektera det senaste sÂret 
                         Wound mostRecentWound = allWounds[allWounds.Count - 1];
                         mostRecentWound.isInfected = true;
 
@@ -250,7 +253,7 @@ namespace Assets.Script
 
             }
 
-            //Nolls√§tller cooldown f√∂r n√§sta Attack
+            //Nolls‰tller cooldown fˆr n‰sta Attack
             aiAttackTimer = aiAttackCoolDown;
 
             Debug.Log($"Next attack in {aiAttackCoolDown}seconds");
@@ -258,15 +261,15 @@ namespace Assets.Script
         }
         protected override void ExecuteDeath()
         {
-            // stoppar all r√∂relse 
-            if(navAgent != null && navAgent.enabled)
+            // stoppar all rˆrelse 
+            if (navAgent != null && navAgent.enabled)
             {
                 navAgent.velocity = Vector3.zero; // stoppar all Agent hastighet
-                navAgent.enabled = false; //st√§ngar av agenten
+                navAgent.enabled = false; //st‰ngar av agenten
             }
 
-            //St√§gner √Ñven av all AI logic 
-            this.enabled = false;  // st√§nger av alltihopa
+            //St‰gner ƒven av all AI logic 
+            this.enabled = false;  // st‰nger av alltihopa
 
             // 
             Debug.Log($"{gameObject.name} Is now Dead");
@@ -274,7 +277,7 @@ namespace Assets.Script
 
         }
 
-        //Public metod f√∂r att v√§xla AI state till det d√∂da
+        //Public metod fˆr att v‰xla AI state till det dˆda
         public void Dead()
         {
             ChangeState(AiState.Dead);
@@ -286,4 +289,4 @@ namespace Assets.Script
         }
 
     }
-    }
+}
