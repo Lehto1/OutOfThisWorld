@@ -219,7 +219,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 275167226}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6401ac49ef415da4da27e43f2343e036, type: 3}
   m_Name: 
@@ -814,7 +814,7 @@ Transform:
   m_GameObject: {fileID: 1004845967}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.63373, y: 0.44361, z: -80.7}
+  m_LocalPosition: {x: -3.85, y: 0.66, z: 1.22}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1221,8 +1221,8 @@ GameObject:
   - component: {fileID: 1954966417}
   - component: {fileID: 1954966416}
   - component: {fileID: 1954966415}
-  - component: {fileID: 1954966414}
   - component: {fileID: 1954966419}
+  - component: {fileID: 1954966420}
   m_Layer: 0
   m_Name: AIINSECT
   m_TagString: InsectAI
@@ -1230,45 +1230,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1954966414
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1954966413}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 09d6ddc073355ca4eaa493e35c83b3fa, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Assets.Script.Insects
-  aiMovementSPeed: 4
-  aiSprintSPeed: 5
-  aiTurningSpeed: 3
-  aiAcc: 2
-  playerTransformTarget: {fileID: 0}
-  aiRadiusOfDetection: 20
-  aiAttackRadius: 1
-  aiFOV: 115
-  aiHearingRange: 20
-  playerLayer:
-    serializedVersion: 2
-    m_Bits: 64
-  obstacleLayer:
-    serializedVersion: 2
-    m_Bits: 8
-  aiPatrolWaypoints:
-  - {fileID: 1450587335}
-  - {fileID: 984330233}
-  - {fileID: 606407123}
-  - {fileID: 796583360}
-  - {fileID: 341773783}
-  aiPatrolWaypointsIndex: 0
-  aiTimeAtPoint: 20
-  aiPointTole: 22
-  aiPointTImer: 12
-  insectDMG: 5
-  insectAttackCoolDown: 1.5
 --- !u!136 &1954966415
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -1386,6 +1347,51 @@ NavMeshAgent:
   m_BaseOffset: 1
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
+--- !u!114 &1954966420
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1954966413}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 09d6ddc073355ca4eaa493e35c83b3fa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Assets.Script.Insects
+  aiMovementSPeed: 33
+  aiSprintSPeed: 77
+  aiTurningSpeed: 44
+  aiAcc: 88
+  playerTransformTarget: {fileID: 1004845971}
+  aiRadiusOfDetection: 20
+  aiAttackRadius: 1
+  aiFOV: 115
+  aiHearingRange: 20
+  playerLayer:
+    serializedVersion: 2
+    m_Bits: 64
+  obstacleLayer:
+    serializedVersion: 2
+    m_Bits: 8
+  aiPatrolWaypoints:
+  - {fileID: 1450587335}
+  - {fileID: 984330233}
+  - {fileID: 606407123}
+  - {fileID: 796583360}
+  - {fileID: 341773783}
+  aiPatrolWaypointsIndex: 0
+  aiTimeAtPoint: 6
+  aiPointTole: 3.96
+  aiPointTImer: -2.77
+  maxAIInsectHP: 50
+  aiDMG: 15
+  aiDMGVariation: 6
+  aiAttackCoolDown: 1.5
+  playerHealth: {fileID: 1004845974}
+  infectionChance: 0.6
+  playerVirusHandling: {fileID: 0}
+  minimumDMGperAttack: 1
 --- !u!1 &2055620621
 GameObject:
   m_ObjectHideFlags: 0

@@ -498,7 +498,7 @@ public abstract class VirusHandlingScript : MonoBehaviour
         OnCured?.Invoke();
     }
     //denna metod är till för de olika barnklasserna 
-    //är därmed abstract
+    //är därmed abstractc
     protected abstract void IndividualPlayerEffect();
 
     //På en skala mellan 0 och 1 hämtar jag här hur pass långt viruset har verkat
