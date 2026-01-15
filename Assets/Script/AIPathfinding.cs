@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Threading;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.EventSystems;
 using UnityEngine.XR;
 
 //Detta kommer vara bas scriptet för all AI rörelse i spelet
@@ -9,6 +10,8 @@ using UnityEngine.XR;
 
 public abstract class AIPathfinding : MonoBehaviour
 {
+    [Header("Extra")]
+    [SerializeField] protected float aiTurnSpeedAtObstruction = 5f;
     [Header("Pathfinding")]
     //Skapar en navmesh variable.
     //kommer hantera mycket utav Ains navigation
@@ -252,6 +255,11 @@ public abstract class AIPathfinding : MonoBehaviour
 
         //reducerar timer
         
+        //roterar mot den egna färdriktningen 
+        RotateTowardsMovementDir();
+
+        //Hantera hinder och väggkollisioner
+        HandleWallObstuction();
 
         //A:n Beslutar 
         //statelogic;
@@ -566,10 +574,129 @@ protected virtual void UpdatePointWaitTimer()
     {
 
     }
- 
+
+    protected virtual void RotateTowardsMovementDir()
+    {
+        //Kollar först om navAgent finns
+        //Ifall den ite gör det så ska koden retunera
+        if(navAgent == null)
+        {
+            return;
+        } 
+
+        //KSäkerställer att AI:n har en aget väg att fälja
+        if(navAgent.path == null)
+        {
+            return;
+        }
+
+        //hämmtar dess rörelseriktning
+        Vector3 aiMovementDirection = navAgent.desiredVelocity;
+
+        aiMovementDirection = aiMovementDirection.normalized;
+
+        //ifall Ai:n rör sig
+        if(aiMovementDirection.sqrMagnitude < 0.01f)
+        {
+            return; //annars
+        }
+
+        //skapar en måltoration att rotera till
+        //utav rörelseriktningen
+
+        Quaternion targAITravelRotation = Quaternion.LookRotation(aiMovementDirection, Vector3.up); // mot rörelse rikting
+
+        //gör så att rotering blir jäm och len 
+        transform.rotation = Quaternion.Lerp(transform.rotation, targAITravelRotation, aiTurningSpeed * Time.deltaTime);
+
+        //Dbugdgubdgubdubg
+        UnityEngine.Debug.DrawLine(transform.position,transform.position + aiMovementDirection * 2f, Color.red, 0.2f);
+
+    }
+  
+    protected virtual void HandleWallObstuction()
+    {
+        //kollar om en Agent finns
+        if(navAgent == null)
+        {
+            return;
+        }
+
+        if (!navAgent.enabled)
+        {
+            return;
 
 
-}
+        }
+
+        //kontrollerar om vägen har beräknats utav navAgent AI:N
+        if(navAgent.pathPending)
+        {
+            return;
+        }
+
+        //mätter sedan agentens hastighet vid tillfället
+        //dess nuvariga hastighet
+        float currentNavAiSpeed = navAgent.velocity.magnitude;
+
+        //cHECKA om AI: har fastnat mot en vägg eller liknande
+        if(currentNavAiSpeed < 0.1f && navAgent.remainingDistance > 0.5f)
+        {
+            UnityEngine.Debug.Log($"The {gameObject.name} AI is stuck");
+
+            //taycast framåt mot det som hindrar AI:n
+            RaycastHit wallObsHit;
+            Vector3 raycastDir = transform.forward; //castar rakt fram
+            float rayCastDistance = 2f;
+            Vector3 rayCASTStartingPos = transform.position + Vector3.up * 0.5f; //utser en star pos
+
+            bool hitObsorWall = Physics.Raycast(rayCASTStartingPos, raycastDir, out wallObsHit, rayCastDistance, obstacleLayer); //raycastar alltså mot ostavle lagret liksom klassens sikt
+
+            //vid träff av vägg eller annat
+            if (hitObsorWall)
+            {
+                UnityEngine.Debug.Log($"Wall or obstructing object in´front of {gameObject.name}");
+
+                Vector3 normalWall = wallObsHit.normal;
+
+                //nya riktningen
+                Vector3 newDirection = Vector3.Reflect(transform.forward, normalWall); //kommer "studsa" av wäggen
+
+                //Nya slutmålet
+                Vector3 newDestination = transform.position + newDirection * 5f;
+
+                //nav
+                navAgent.SetDestination(newDestination);
+
+
+
+            } else // OM INGEN 
+            {
+                UnityEngine.Debug.Log($"{gameObject.name} random U-turn");
+
+                Vector3 rndDirection = Random.insideUnitSphere; //genererar en slumpad riktning
+                rndDirection.y = 0; //säter y till 0 
+                rndDirection = rndDirection.normalized;
+
+                Vector3 rndDestination = transform.position + rndDirection * 5f; //beräknar den slumpade
+
+                navAgent.SetDestination(rndDestination);
+
+
+            }
+
+
+
+
+            }
+        }
+
+
+
+    }
+
+
+
 
 //Börjat med Enum
 public enum AiState

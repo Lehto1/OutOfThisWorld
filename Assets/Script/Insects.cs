@@ -191,6 +191,11 @@ namespace Assets.Script
 
             wiggleTime += Time.deltaTime * wiggleSpeed; // Muliplicerar farten med tiden
 
+            //if(
+            if (currentAIState == AiState.Patrol)
+            {
+                aiPointTImer += Time.deltaTime;
+            }
         }
 
         protected override void ExecuteIdle()
@@ -207,9 +212,6 @@ namespace Assets.Script
         {
             //sätter NavAgentens destination 
             navAgent.SetDestination(aiPatrolWaypoints[aiPatrolWaypointsIndex].position);
-
-            //Implementerar hoppet i koden
-            AIPerfromJump(aiPatrolWaypoints[aiPatrolWaypointsIndex].position, jumpSTR);
 
             //Applicerar en pytteliten skakning 
             ApplyWiggling(0.4f);
@@ -376,7 +378,8 @@ namespace Assets.Script
         //Barnklassernas olika egenskaper
         protected override void UniqueBehavior()
         {
-
+            //Detta är insekt 1, Andra barn utav Aipathfinder må ha fyllde UniqueBehavior metoder
+            //inte denna
         }
 
         private void CompletInsectHop()
@@ -485,7 +488,7 @@ namespace Assets.Script
             float landingTIme = Mathf.Sqrt(2f * jumpHight /  Physics.gravity.magnitude);
 
             // aNROPAR landning
-            Invoke("CompletInsecthop", landingTIme + 0.051f);
+            Invoke("CompletInsectHop", landingTIme + 0.051f);
         }
 
         //Hjälmp metod för den ovan
