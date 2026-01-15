@@ -117,12 +117,13 @@ public abstract class AIPathfinding : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     //initialiserar alla värden och letar/finner vart spelaren är
 
- void Start()
+ protected virtual void Start()
     {
         //Konfugurerar AI:ns "pathfinding" 
         NavMeshConfig();
         //Söker upp och finner spelarens position 
         Findplayer();
+
         //Initialiserar Ai:s skick/tillsåtmd
         //Initialiserar spelarens start tillstånd
         AIstateInit();
@@ -246,9 +247,15 @@ public abstract class AIPathfinding : MonoBehaviour
         //updaterar och kollar väntetiden vid punkten
         UpdatePointWaitTimer();
 
+        //Uppdaterar AttackCooldown timern
+        //Minskar timern mot 0 vilket först då tillåter nästa attack
+
+        //reducerar timer
+        
+
         //A:n Beslutar 
         //statelogic;
-               Execute();
+        Execute();
 
         //Barnklassernas olika egenskaper
         UniqueBehavior();
@@ -476,6 +483,8 @@ protected virtual void UpdatePointWaitTimer()
 
     }
     /// <summary>
+    /// 
+
 
     //sTATECHANGER, //Byter Ai:s tillstånd 
     protected virtual void ChangeState(AiState newState)
@@ -504,7 +513,7 @@ protected virtual void UpdatePointWaitTimer()
     //huvud metod 
     //Kör  logic baserat på tillstånd
 
-
+    
     protected virtual void Execute()
     {
         //switchar baserat på nuvarande tillstånd

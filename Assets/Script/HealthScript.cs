@@ -273,21 +273,16 @@ public class HealthScript : MonoBehaviour
     //Kallas när en attack gör mer skada änn tresh
     public void CreateWound(float damage)
     {
+
         //skappaet ett nytt object av sorten wound
-        Wound newWound = new Wound
-        {
-            //ger skadan ett unikt IFD
-            id = woundID++, //öknar ID räknaren
-            //blir inte  infekteran ännu
-            isInfected = false,
-        };
+        Wound newWound = new Wound(woundID++,damage);
+
 
         //LÄGGER TILL TILL LISTAN
         wounds.Add(newWound);
-
-        //triggrar event
-        //
+        //triggrar evvent
         OnAdditionalWound?.Invoke(newWound);
+     
 
         //logg
         Debug.Log($"New wound created, ID : {newWound.id}. DMG : {damage}, Tot wounds {wounds.Count}");
