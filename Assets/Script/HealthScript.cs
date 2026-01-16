@@ -380,6 +380,8 @@ public class HealthScript : MonoBehaviour
                 break;
             case HealthState.Death:
                 //Död state
+                //förstör spelaren
+                Destroy(gameObject);
                 //spelaren har dött
                 UnityEngine.Debug.Log("The player has died, GAME over");
                 PlayerDeathHandler();
