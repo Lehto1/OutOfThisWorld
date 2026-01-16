@@ -9,7 +9,7 @@ public class BombProgress : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        BombsLeft = 4;
+        BombsLeft = 3;
     }
 
     // Update is called once per frame
