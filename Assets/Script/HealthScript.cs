@@ -5,6 +5,9 @@ using UnityEngine.EventSystems;
 using System;
 using System.Collections.Generic;
 using JetBrains.Annotations;
+using TMPro;
+using UnityEngine.UI;
+using System.Diagnostics;
 
 public class HealthScript : MonoBehaviour
 
@@ -19,6 +22,14 @@ public class HealthScript : MonoBehaviour
 
     //varibel för spelarens nuvarnade hälsa 
     [SerializeField] private float currentHealth;
+    [Header("Ui komponenter")]
+    //Ui komponenter 
+    [SerializeField] TextMeshPro healthText;
+    [SerializeField] TextMeshPro StaminaText;
+    [SerializeField] Image healthBar;
+    [SerializeField] Image staminaBar;
+    [SerializeField] float uiLerpingSpeed;
+
 
 
 
@@ -44,12 +55,47 @@ public class HealthScript : MonoBehaviour
     //detta kontrolerar hur mycket skada som beror på alvarighetsgraden
     [SerializeField] private float multiplierDamageTWound = 1f;
     //
-    [Header("HealthState")]
+    [Header("HealthState and Effects")]
     //spelaren nuvariaga hälsotillstånd
     //vid liv, lidande eller död
     //Alive, Ailing, Dead
 
-    [SerializeField] private HealthState state = HealthState.Alive; ///fixxar vid senare tillf'lle
+    //En hastighetsmodifierar baserat på spelarens hälsotillstånd 
+    //kommer bla multiplicera sig med spelarens stamina och rörelse hastighet
+
+    //Multiplikatiorn vid Healthy är 1, Påverkad därmed inte spelaren negativt
+    //detta är standarden
+    [SerializeField] private float speedMultiplierWhileHealthy = 1f;
+
+    [SerializeField] private float speedMultiplierWhileInjured = 0.86f;
+
+    [SerializeField] private float speedMultiplierWhileCritical = 0.65f;
+
+    [SerializeField] private float speedMultiplierWhileDying = 0.35f;
+
+    //Variablerna nedan är staminamodifierare som dem me är baserade på hälsotillståndsenumen
+    //dess påverkar hur snabbt som stammina återhiämtar sig'
+    //Vid normal
+    [SerializeField] private float staminaMultiplierWhileHealthy = 1f;
+
+    [SerializeField] private float staminaMultiplierWhileInjured= 0.85f;
+
+    [SerializeField] private float staminaMultiplierWhileCritical = 0.65f;
+
+    [SerializeField] private float staminaMultiplierWhileDying = 0.33f;
+
+    // Varibler för DMG multiplikatorn, Denna multiplikator multipliceras med fiende skadan 
+    //Destå svårare hälsotillsånd spelaren är i desto mer skada kommer spelaren att ta
+    [SerializeField] private float dMGMultiplierInjured = 1.1f;
+
+    [SerializeField] private float dMGMultiplierCritical = 1.30f;
+
+    [SerializeField] private float dMGMultiplierDying = 1.4f;
+
+
+    [SerializeField] private HealthState state = HealthState.Healthy; 
+
+    ///fixxar vid senare tillf'lle
 
 
 
@@ -112,8 +158,16 @@ public class HealthScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+     
+
+        //lenar Ui:N 
+        uiLerpingSpeed = 3f * Time.deltaTime;
         //uppdatera det återhämtande stamminavärde en varje frame
         RegenStamina();
+
+        UpdateUI(); //uPPDATERAR klasens kopplade UI komponenter
+
+         
     }
 
     //En metod som applicerar skada på spelarens hälsa, 
@@ -264,8 +318,83 @@ public class HealthScript : MonoBehaviour
         return currentStamina >= requiredAmount;
     }
 
+    //En metod som ppdaterar spelarens hälsotillstånd baserat på det nuvarnade
+    // Metoden använder sig utav procentebestämma n angivna i enumen för att ävgöra vilket skick som spelaren
+    // //befinner sig i
    public void  UpdatePlayerHealthState()
     {
+        // Skapar en ny Healthstate variabel för det nya tillståndet
+        HealthState newHeathState;
+
+        //Beräknar spelarenns nuvariga Hp i procent 
+        float hpPercentage = currentHealth / maxHealth;
+
+        //jämför procenten med intervallen för de alla olika tillstånden
+        //och utser state baserat på det
+        if (currentHealth <= 0)
+        {
+            //spelaren har 0 maximalt, Är alltså död
+            newHeathState = HealthState.Death;
+        }
+        else if (hpPercentage <= 0.14f)
+        {
+            // 0 - 14 hp
+            //Ifall spelaren beffiner sig inom detta intervall så betyder det att spelaren är döende
+            //Spelaren rörsig väligt sakta vid detta tillstånd
+            newHeathState = HealthState.Dying;
+
+
+        }
+        else if (hpPercentage <= 0.40f) // 15- 40% HP
+        {
+            //Detta är det kritiska intervallet
+            //Spelaren tar mycket mer skada 
+            newHeathState = HealthState.Critical;
+
+        }
+        else if (hpPercentage <= 0.70f)
+        {
+            //Spelaren ligger någonstans mellan 41 till 70% resterande hp
+            //Detta resluterar i att spelraten tar lite mer skada än normalt och att 
+            //det exempelvis 
+            newHeathState = HealthState.Injured;
+        }
+        else // 70 hp uppåt
+        {
+            // Detta är det "fRISKA" intevallet 
+            //
+            newHeathState = HealthState.Healthy;
+
+        }
+
+        //Kollar om tillståndet är det samma som förr eller om spelaren har byt
+        //tillstånd
+        if(newHeathState != state)
+        {
+            //lagrar koden den gamla staten i en egen variabel
+            HealthState previousState = state;
+
+            //uppdaterar state till det nya
+            state = newHeathState;
+
+            //Triggrar event ifall jag senare lägger till AI, ljud eller andra beroednde klasser
+            OnStateChange?.Invoke(state);
+
+            UnityEngine.Debug.Log($" The Healthstate has been changed, {previousState} --> {newHeathState}");
+
+            //Kallar metod som applicerar tillståndsspecifissaeffekterna 
+            ApplyHealthStateEffect(newHeathState);
+        }
+
+    }
+
+    // Denna metod applicerar en lång rad olika effekter på spealren. När Hälsotillstånden ändras 
+    //så kallas denna metod,(När en förändring i tillstånd upptäcks).
+    //
+    private void ApplyHealthStateEffect (HealthState newState)
+    {
+        //Använder switch-statemetn 
+        switch (newState) {
 
     }
 
@@ -340,6 +469,31 @@ public class HealthScript : MonoBehaviour
             Debug.LogWarning($"Could not match any woud to ID : {woundID}");
         }
     }
+
+    //Ui FIller metoder nedan
+    void UpdateUI()
+    {
+        //lämnar texterna tomma för tillfället 
+        HealthbarFiller();
+        StaminaBarFiller();
+         //ändra färg på healthbar
+         ColorChanger();
+    }
+     void HealthbarFiller()
+    {
+        //Fyller Ui 
+        healthBar.fillAmount = Mathf.Lerp(healthBar.fillAmount, currentHealth / maxHealth, uiLerpingSpeed); //Lerpar
+    }
+    void StaminaBarFiller()
+    {
+        staminaBar.fillAmount = Mathf.Lerp(staminaBar.fillAmount, currentStamina / maxinumStamina, uiLerpingSpeed);
+    }
+    void ColorChanger()
+    {
+        Color healthColour = Color.Lerp(Color.red, Color.green, (currentHealth / maxHealth)); //kommer bilda ett
+
+        healthBar.color = healthColour;
+    }
     //Getter kod och Gettermetoder
 
 
@@ -350,11 +504,13 @@ public class HealthScript : MonoBehaviour
 }
 
 //Healthstate enum 
-//alla de tre olika tillstånden
+//alla de fyra olika tillstånden kommer att påverka spelaren på olika sätt
 public enum HealthState
 {
-    Alive,
-    Ailing,
-    Death
+    Healthy, //omkring 100 - 70% Hp, Spelaren är vid detta stadie i en väldigt god from
+    Injured, //Omkring 70 - 40 HP spelaren är skadad men är ändå i relativt gott tilstånd
+    Critical, // 40 - 16 hp, 
+    Dying, // 14 -  1 hp
+    Death // 0% hp, Spelaren har dött
 }
 
