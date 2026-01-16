@@ -151,7 +151,7 @@ public class HealthScript : MonoBehaviour
         currentHealth = maxHealth; //sätts till max
         currentStamina = maxinumStamina; //sätt till max
 
-        Debug.Log($"Player init, Health level:{currentHealth/maxHealth}, Stamina:{currentStamina/maxinumStamina}");//säkerhet
+        UnityEngine.Debug.Log($"Player init, Health level:{currentHealth/maxHealth}, Stamina:{currentStamina/maxinumStamina}");//säkerhet
     }
   
 
@@ -179,7 +179,7 @@ public class HealthScript : MonoBehaviour
         if (state == HealthState.Death)
         {
             //Informerar konsollen
-            Debug.Log("Player has already died, can not take DMG");
+            UnityEngine.Debug.Log("Player has already died, can not take DMG");
             return;
 
         }
@@ -190,7 +190,7 @@ public class HealthScript : MonoBehaviour
         //Triggrar DMG eventet
         OnDamageTaken?.Invoke(dMG);
 
-        Debug.Log($"Player took {dMG} damage, Which reduced player HP to {currentHealth / maxHealth} ");
+        UnityEngine.Debug.Log($"Player took {dMG} damage, Which reduced player HP to {currentHealth / maxHealth} ");
 
         //ifall dmg värdet som spelaren tog 
         //är så pass tor så att den överstiger trhesholden 
@@ -213,55 +213,21 @@ public class HealthScript : MonoBehaviour
         //valliderar 
         if( healingAMount <= 0)
         {
-            Debug.LogWarning("HealingAmount has to be above 0");
+            UnityEngine.Debug.LogWarning("HealingAmount has to be above 0");
             return;
         }
         //ökar spelarens hälsa 
         currentHealth += healingAMount;
         currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
 
-        Debug.Log($"Player healed {healingAMount} HP , Current health : {currentHealth / maxHealth}");
+        UnityEngine.Debug.Log($"Player healed {healingAMount} HP , Current health : {currentHealth / maxHealth}");
 
                //Uppdaterar här spelarens hälso tillstånd,
-    UpdateHealthState();
+    UpdatePlayerHealthState();
 
     }
 
-    //En metod som uppdatera spelaren hälsotillstånds baserat på
-    //den nuvarande hälsan
-    private void UpdateHealthState()
-    {
-        HealthState newState;
-
-        //bestämmer det nya tillstondet baserat på 
-        //Mängden HP
-        if (currentHealth <= 0)
-        {
-            newState = HealthState.Death; // om Hp är lika med eller är mindre än 0, så är spelaren död
-        }
-        else if (currentHealth < maxHealth * 0.33f)
-        {
-            newState = HealthState.Ailing; // om Hp är under 33 procent
-
-        }
-        else
-        {
-            newState = HealthState.Alive;
-        }
-
-        //Om tillståndet förrändras, triggras detta evvent
-        //för då har det skett en förändring
-        if (newState != state)
-        {
-            state = newState;
-            //ivokar 
-            OnStateChange?.Invoke(state); //
-
-            Debug.Log($"Healthstate cahnged to {state}");
-
-        }
-    }
-
+   
     //Metod för att använda stamina, vilket minskar spelaren ´s enegri
     //Denna mettod kallas när spealren gör något som förbrukar energi 
     public void UseStamina(float stmAmount)
@@ -271,7 +237,7 @@ public class HealthScript : MonoBehaviour
 
         if (stmAmount <= 0)
         {
-            Debug.LogWarning("Stamina requirement not ");
+            UnityEngine.Debug.LogWarning("Stamina requirement not ");
             return;
 
         }
@@ -286,7 +252,7 @@ public class HealthScript : MonoBehaviour
         // triggrar event onStaminachanged
         OnStaminaChnge?.Invoke(currentStamina);
 
-        Debug.Log($"Stamina used : {stmAmount}, New stamina amout : {currentStamina}/{maxinumStamina}");
+        UnityEngine.Debug.Log($"Stamina used : {stmAmount}, New stamina amout : {currentStamina}/{maxinumStamina}");
 
     }
 
@@ -305,7 +271,11 @@ public class HealthScript : MonoBehaviour
             currentStamina = Mathf.Clamp(currentStamina,0,maxinumStamina);
 
             //On
-            OnStaminaChnge.Invoke(currentStamina);
+            if(OnStaminaChnge != null) {
+
+                OnStaminaChnge.Invoke(currentStamina);
+            }
+
         }
 
             }
@@ -394,28 +364,74 @@ public class HealthScript : MonoBehaviour
     private void ApplyHealthStateEffect (HealthState newState)
     {
         //Använder switch-statemetn 
-        switch (newState) {
+        switch (newState)
+        {
+            case HealthState.Healthy:
+                //Inget sker, då spelaren är frisk
+                break;
+            case HealthState.Injured:
+                //fyller sen
+                break;
+            case HealthState.Critical:
+                //fyller sen
+                break;
+            case HealthState.Dying:
+                //syller sen
+                break;
+            case HealthState.Death:
+                //Död state
+                //spelaren har dött
+                UnityEngine.Debug.Log("The player has died, GAME over");
+                PlayerDeathHandler();
+                break;
+        }
 
     }
 
-
-    //Kallas när en attack gör mer skada änn tresh
-    public void CreateWound(float damage)
+    //Denna Metod kalls när spelaren når Döds tillståndet
+    private void PlayerDeathHandler()
     {
+        //Säkkerställer att Currenthealth beffiner sig på 0 
+        currentHealth = 0;
 
-        //skappaet ett nytt object av sorten wound
-        Wound newWound = new Wound(woundID++,damage);
+        // HIttar movementscriptet och stänger av det,
+        //hindrar den döda spelaren från att röra på sig
+        Movement movementScript = GetComponent<Movement>(); //hämtar
+
+        if (movementScript != null)
+        {
+            //stänger av scriptet 
+            movementScript.enabled = false;
+            UnityEngine.Debug.Log("The MovementScript has been deactivated, Player can no longer move");
 
 
-        //LÄGGER TILL TILL LISTAN
-        wounds.Add(newWound);
-        //triggrar evvent
-        OnAdditionalWound?.Invoke(newWound);
-     
-
-        //logg
-        Debug.Log($"New wound created, ID : {newWound.id}. DMG : {damage}, Tot wounds {wounds.Count}");
+        }
+        else
+        {
+            UnityEngine.Debug.LogWarning("cOULD not find Movement");
+        }
+        //------------------------------/
+        //-----------// HÄR KOMMER JAG SENARE LÄGGATILL MER LOGIK, ANIMATIONER OSV
     }
+
+
+            //Kallas när en attack gör mer skada änn tresh
+            public void CreateWound(float damage)
+            {
+
+                //skappaet ett nytt object av sorten wound
+                Wound newWound = new Wound(woundID++, damage);
+
+
+                //LÄGGER TILL TILL LISTAN
+                wounds.Add(newWound);
+                //triggrar evvent
+                OnAdditionalWound?.Invoke(newWound);
+
+
+                //logg
+                UnityEngine.Debug.Log($"New wound created, ID : {newWound.id}. DMG : {damage}, Tot wounds {wounds.Count}");
+            }
 
         //retunerar lista med wound "sår" object 
         public List<Wound> GetWounds()
@@ -461,12 +477,12 @@ public class HealthScript : MonoBehaviour
             //TAr bort det funna såret
             wounds.Remove(healThisWound);
 
-            Debug.Log($"The wound {woundID} has healed and been removed");
+            UnityEngine.Debug.Log($"The wound {woundID} has healed and been removed");
 
         } else
         {
             //hittades inte
-            Debug.LogWarning($"Could not match any woud to ID : {woundID}");
+            UnityEngine.Debug.LogWarning($"Could not match any woud to ID : {woundID}");
         }
     }
 
