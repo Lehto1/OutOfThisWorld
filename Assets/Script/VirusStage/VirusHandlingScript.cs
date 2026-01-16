@@ -480,7 +480,7 @@ public abstract class VirusHandlingScript : MonoBehaviour
     private void ControllHealthState(HealthState newHealthState)
     {
         //koollar ifall spealren forfarande lever
-        if(newHealthState != HealthState.Alive)
+        if(newHealthState != HealthState.Healthy)
         {
             //stänger av viruset
             enabled = false;
