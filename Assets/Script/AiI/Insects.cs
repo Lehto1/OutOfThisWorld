@@ -434,7 +434,7 @@ namespace Assets.Script
                 //
                 targertPosition += missOffSet;
 
-                Debug.Log($" {gameObject.name} is missing its leaps");
+                
 
 
             }

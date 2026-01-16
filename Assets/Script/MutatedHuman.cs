@@ -15,7 +15,7 @@ namespace Assets.Script
 
         private float currentInsectHP;
 
-        [Header("InsectSettings Attack")]
+        [Header("SpiderSettings Attack")]
         //dess definiera hur kraftig fienden attack kommer vara
         [SerializeField] private float aiDMG = 15f; //dess bass skada
         [SerializeField] private float aiDMGVariation = 6; // Alltså +- 6 skada
@@ -27,6 +27,56 @@ namespace Assets.Script
                                           //
         [SerializeField] private HealthScript playerHealth;
 
+        [Header("Spidersattacks")]
+        //spider bitande skada
+        [SerializeField] private float spiderBiteDMG = 15F;
+
+        //Spindel gifrskadan, sprutar gift mot spelaren
+        [SerializeField] private float spiderVenomDMG = 10f;
+
+        //Chans att psindeln spruta gift vid attack läge
+        [SerializeField] private float venomChance = 0.3f;
+
+        //drain prer sec
+        [SerializeField] private float venomStaimnaDrainPS = 2f;
+
+        [Header("SpiderAI intelli")]
+
+        //Spindeln blir riktigt sur när spelare nära
+        [SerializeField] private float spiderAggroDistance = 15f;
+
+        //spindel kan gömma sig vänta på spelaren.
+        [SerializeField] private bool spiderCanHide = true;
+
+        [SerializeField] private float spiderHideTime = 80f;
+
+        [Header("Spider-spec Settings")]
+
+        //Rörele och rörelse typer 
+        //Hur snabbt spiden rör sig vid normala tillstånd
+        [SerializeField] private float spiderNormalSpeed = 5f;
+
+        //hur snabbt spidenl springer vid jakt
+        [SerializeField] private float spiderSprintingSpeed = 8f;
+
+        //hur snabbts spideln kan kyrpa upp för väggar/ hinder
+        [SerializeField] private float spiderClimbingSpeeed = 5f;
+
+        //"chargeup" tid innan varje hopp
+        [SerializeField] private float SspiderLeapChargeTime = 0.5f;
+
+        [Header("Spiderweb mechanics")]
+
+        //Spindeln placerar ut ett nät för att fånga aoch sakta ned spelaren, Chans per sekund
+        [SerializeField] private float webDeployChance = 0.25f;
+
+        // hur länge spidlens nät varar på  spelaren 
+        [SerializeField] private float webEffectDuration = 2.5f;
+
+        //Hur mycket spelarne shastighet minskas med 
+        [SerializeField] private float webMultiplier = 0.3f;
+
+       
         [Header("Wound and VIrus")]
 
         //integration utav virus 
@@ -36,6 +86,21 @@ namespace Assets.Script
         //Minnimiskadan
         //Hindrar negativ skada
         [SerializeField] private float minimumDMGperAttack = 1f;
+
+        //Runtime variabler
+        private bool isLeapingChargingUp = false;
+        private float spiderLeapTimer = 0f;
+        private float spiderLearnChargeTimer = 0f;
+
+        //Timer för nät
+        private float webTimer = 0f;
+
+        //Håller spelaren fasthållen i nätet 
+        private bool playerStuckInwEBn = false;
+        private float duratiionOfWeb = 0f;
+
+        //håller 
+
 
 
         //Initierar AI:s attacksystem
