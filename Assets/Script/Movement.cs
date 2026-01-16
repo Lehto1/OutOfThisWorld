@@ -80,11 +80,11 @@ public class Movement : MonoBehaviour
         {
             if (Input.GetKey(KeyCode.LeftShift)) //Används för att ändra spelarens hastighet när de springer
             {
-                Running = 4;
+                Running = 12;
             }
             else
             {
-                Running = 2;
+                Running = 6;
             }
 
             return; //avlustar om det inte finns stamina
@@ -104,7 +104,7 @@ public class Movement : MonoBehaviour
             //spelaren srpinger här
 
             //öker dess hastighet
-            Running = 4;
+            Running = 12;
 
             //räknaer sedan ut hur mycket stamina som bör dras från spelaren
             float staminaCostCurrentFrame = staminaDrainPS * Time.deltaTime;
@@ -116,7 +116,7 @@ public class Movement : MonoBehaviour
         else
         {
             //spelaren går , 
-            Running = 2;
+            Running = 6;
         }
 
 
