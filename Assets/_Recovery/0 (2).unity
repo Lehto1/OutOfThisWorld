@@ -410,10 +410,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -5033748527710552476, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
-      propertyPath: m_Layer
-      value: 3
-      objectReference: {fileID: 0}
     - target: {fileID: -4111947506654898887, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_LocalPosition.x
       value: -1.25
@@ -421,10 +417,6 @@ PrefabInstance:
     - target: {fileID: -4111947506654898887, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_LocalPosition.z
       value: -3.03
-      objectReference: {fileID: 0}
-    - target: {fileID: -2793727289926329592, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
-      propertyPath: m_Layer
-      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 335397789009596179, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_LocalPosition.x
@@ -434,21 +426,9 @@ PrefabInstance:
       propertyPath: m_LocalPosition.z
       value: -1.038
       objectReference: {fileID: 0}
-    - target: {fileID: 661186428267215215, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
-      propertyPath: m_Layer
-      value: 3
-      objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_Name
       value: Skog sak (3)
-      objectReference: {fileID: 0}
-    - target: {fileID: 919132149155446097, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
-      propertyPath: m_Layer
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 1135082405024372097, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
-      propertyPath: m_Layer
-      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 1833192008707540814, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_LocalPosition.z
@@ -470,10 +450,6 @@ PrefabInstance:
       propertyPath: m_LocalPosition.z
       value: -5.68
       objectReference: {fileID: 0}
-    - target: {fileID: 4992377184541298458, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
-      propertyPath: m_Layer
-      value: 3
-      objectReference: {fileID: 0}
     - target: {fileID: 5518967698196589791, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_LocalPosition.x
       value: 1.155
@@ -481,10 +457,6 @@ PrefabInstance:
     - target: {fileID: 5518967698196589791, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_LocalPosition.z
       value: -2.48
-      objectReference: {fileID: 0}
-    - target: {fileID: 5851444519229687131, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
-      propertyPath: m_Layer
-      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 8911947063722212602, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_LocalScale.x
@@ -1016,10 +988,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -5033748527710552476, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
-      propertyPath: m_Layer
-      value: 3
-      objectReference: {fileID: 0}
     - target: {fileID: -4111947506654898887, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_LocalPosition.x
       value: -1.25
@@ -1027,10 +995,6 @@ PrefabInstance:
     - target: {fileID: -4111947506654898887, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_LocalPosition.z
       value: -3.03
-      objectReference: {fileID: 0}
-    - target: {fileID: -2793727289926329592, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
-      propertyPath: m_Layer
-      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 335397789009596179, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1040,21 +1004,9 @@ PrefabInstance:
       propertyPath: m_LocalPosition.z
       value: -1.038
       objectReference: {fileID: 0}
-    - target: {fileID: 661186428267215215, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
-      propertyPath: m_Layer
-      value: 3
-      objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_Name
       value: Skog sak (1)
-      objectReference: {fileID: 0}
-    - target: {fileID: 919132149155446097, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
-      propertyPath: m_Layer
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 1135082405024372097, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
-      propertyPath: m_Layer
-      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 1833192008707540814, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_LocalPosition.z
@@ -1076,10 +1028,6 @@ PrefabInstance:
       propertyPath: m_LocalPosition.z
       value: -5.68
       objectReference: {fileID: 0}
-    - target: {fileID: 4992377184541298458, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
-      propertyPath: m_Layer
-      value: 3
-      objectReference: {fileID: 0}
     - target: {fileID: 5518967698196589791, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_LocalPosition.x
       value: 1.155
@@ -1087,10 +1035,6 @@ PrefabInstance:
     - target: {fileID: 5518967698196589791, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_LocalPosition.z
       value: -2.48
-      objectReference: {fileID: 0}
-    - target: {fileID: 5851444519229687131, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
-      propertyPath: m_Layer
-      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 8911947063722212602, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_LocalScale.x
@@ -1226,17 +1170,9 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -5033748527710552476, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
-      propertyPath: m_Layer
-      value: 3
-      objectReference: {fileID: 0}
     - target: {fileID: -4111947506654898887, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_LocalPosition.x
       value: 4.79
-      objectReference: {fileID: 0}
-    - target: {fileID: -2793727289926329592, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
-      propertyPath: m_Layer
-      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 335397789009596179, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1246,21 +1182,9 @@ PrefabInstance:
       propertyPath: m_LocalPosition.z
       value: -1.038
       objectReference: {fileID: 0}
-    - target: {fileID: 661186428267215215, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
-      propertyPath: m_Layer
-      value: 3
-      objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_Name
       value: Skog sak (1)
-      objectReference: {fileID: 0}
-    - target: {fileID: 919132149155446097, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
-      propertyPath: m_Layer
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 1135082405024372097, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
-      propertyPath: m_Layer
-      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 1833192008707540814, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1286,10 +1210,6 @@ PrefabInstance:
       propertyPath: m_LocalPosition.z
       value: -4.74
       objectReference: {fileID: 0}
-    - target: {fileID: 4992377184541298458, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
-      propertyPath: m_Layer
-      value: 3
-      objectReference: {fileID: 0}
     - target: {fileID: 5518967698196589791, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_LocalPosition.x
       value: 3.03
@@ -1297,10 +1217,6 @@ PrefabInstance:
     - target: {fileID: 5518967698196589791, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_LocalPosition.z
       value: -0.265
-      objectReference: {fileID: 0}
-    - target: {fileID: 5851444519229687131, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
-      propertyPath: m_Layer
-      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 8911947063722212602, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_LocalScale.x
@@ -3523,10 +3439,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -5033748527710552476, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
-      propertyPath: m_Layer
-      value: 3
-      objectReference: {fileID: 0}
     - target: {fileID: -4111947506654898887, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_LocalPosition.x
       value: -1.25
@@ -3534,10 +3446,6 @@ PrefabInstance:
     - target: {fileID: -4111947506654898887, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_LocalPosition.z
       value: -3.03
-      objectReference: {fileID: 0}
-    - target: {fileID: -2793727289926329592, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
-      propertyPath: m_Layer
-      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 335397789009596179, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_LocalPosition.x
@@ -3547,21 +3455,9 @@ PrefabInstance:
       propertyPath: m_LocalPosition.z
       value: -1.038
       objectReference: {fileID: 0}
-    - target: {fileID: 661186428267215215, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
-      propertyPath: m_Layer
-      value: 3
-      objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_Name
       value: Skog sak (2)
-      objectReference: {fileID: 0}
-    - target: {fileID: 919132149155446097, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
-      propertyPath: m_Layer
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 1135082405024372097, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
-      propertyPath: m_Layer
-      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 1833192008707540814, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_LocalPosition.z
@@ -3583,10 +3479,6 @@ PrefabInstance:
       propertyPath: m_LocalPosition.z
       value: -5.68
       objectReference: {fileID: 0}
-    - target: {fileID: 4992377184541298458, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
-      propertyPath: m_Layer
-      value: 3
-      objectReference: {fileID: 0}
     - target: {fileID: 5518967698196589791, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_LocalPosition.x
       value: 1.155
@@ -3594,10 +3486,6 @@ PrefabInstance:
     - target: {fileID: 5518967698196589791, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_LocalPosition.z
       value: -2.48
-      objectReference: {fileID: 0}
-    - target: {fileID: 5851444519229687131, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
-      propertyPath: m_Layer
-      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 8911947063722212602, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_LocalScale.x
@@ -3769,17 +3657,9 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -5033748527710552476, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
-      propertyPath: m_Layer
-      value: 3
-      objectReference: {fileID: 0}
     - target: {fileID: -4111947506654898887, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_LocalPosition.x
       value: 1.52
-      objectReference: {fileID: 0}
-    - target: {fileID: -2793727289926329592, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
-      propertyPath: m_Layer
-      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 335397789009596179, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_LocalPosition.x
@@ -3789,21 +3669,9 @@ PrefabInstance:
       propertyPath: m_LocalPosition.z
       value: -1.038
       objectReference: {fileID: 0}
-    - target: {fileID: 661186428267215215, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
-      propertyPath: m_Layer
-      value: 3
-      objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_Name
       value: Skog sak (1)
-      objectReference: {fileID: 0}
-    - target: {fileID: 919132149155446097, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
-      propertyPath: m_Layer
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 1135082405024372097, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
-      propertyPath: m_Layer
-      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 1833192008707540814, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_LocalPosition.x
@@ -3825,10 +3693,6 @@ PrefabInstance:
       propertyPath: m_LocalPosition.z
       value: 1.193
       objectReference: {fileID: 0}
-    - target: {fileID: 4992377184541298458, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
-      propertyPath: m_Layer
-      value: 3
-      objectReference: {fileID: 0}
     - target: {fileID: 5518967698196589791, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_LocalPosition.x
       value: 1.98
@@ -3836,10 +3700,6 @@ PrefabInstance:
     - target: {fileID: 5518967698196589791, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_LocalPosition.z
       value: -0.265
-      objectReference: {fileID: 0}
-    - target: {fileID: 5851444519229687131, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
-      propertyPath: m_Layer
-      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 8911947063722212602, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_LocalScale.x
@@ -4942,37 +4802,17 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -5033748527710552476, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
-      propertyPath: m_Layer
-      value: 3
-      objectReference: {fileID: 0}
     - target: {fileID: -4111947506654898887, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0.656
-      objectReference: {fileID: 0}
-    - target: {fileID: -2793727289926329592, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
-      propertyPath: m_Layer
-      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 335397789009596179, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_LocalPosition.z
       value: -1.038
       objectReference: {fileID: 0}
-    - target: {fileID: 661186428267215215, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
-      propertyPath: m_Layer
-      value: 3
-      objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_Name
       value: Skog sak
-      objectReference: {fileID: 0}
-    - target: {fileID: 919132149155446097, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
-      propertyPath: m_Layer
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 1135082405024372097, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
-      propertyPath: m_Layer
-      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 1833192008707540814, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_LocalPosition.z
@@ -4990,10 +4830,6 @@ PrefabInstance:
       propertyPath: m_LocalPosition.z
       value: 1.193
       objectReference: {fileID: 0}
-    - target: {fileID: 4992377184541298458, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
-      propertyPath: m_Layer
-      value: 3
-      objectReference: {fileID: 0}
     - target: {fileID: 5518967698196589791, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_LocalPosition.x
       value: 1.155
@@ -5001,10 +4837,6 @@ PrefabInstance:
     - target: {fileID: 5518967698196589791, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_LocalPosition.z
       value: -0.265
-      objectReference: {fileID: 0}
-    - target: {fileID: 5851444519229687131, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
-      propertyPath: m_Layer
-      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 8911947063722212602, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_LocalScale.x
@@ -5643,10 +5475,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -5033748527710552476, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
-      propertyPath: m_Layer
-      value: 3
-      objectReference: {fileID: 0}
     - target: {fileID: -4111947506654898887, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_LocalPosition.x
       value: -1.25
@@ -5654,10 +5482,6 @@ PrefabInstance:
     - target: {fileID: -4111947506654898887, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_LocalPosition.z
       value: -3.03
-      objectReference: {fileID: 0}
-    - target: {fileID: -2793727289926329592, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
-      propertyPath: m_Layer
-      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 335397789009596179, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_LocalPosition.x
@@ -5667,21 +5491,9 @@ PrefabInstance:
       propertyPath: m_LocalPosition.z
       value: -1.038
       objectReference: {fileID: 0}
-    - target: {fileID: 661186428267215215, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
-      propertyPath: m_Layer
-      value: 3
-      objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_Name
       value: Skog sak (2)
-      objectReference: {fileID: 0}
-    - target: {fileID: 919132149155446097, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
-      propertyPath: m_Layer
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 1135082405024372097, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
-      propertyPath: m_Layer
-      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 1833192008707540814, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_LocalPosition.z
@@ -5703,10 +5515,6 @@ PrefabInstance:
       propertyPath: m_LocalPosition.z
       value: -5.68
       objectReference: {fileID: 0}
-    - target: {fileID: 4992377184541298458, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
-      propertyPath: m_Layer
-      value: 3
-      objectReference: {fileID: 0}
     - target: {fileID: 5518967698196589791, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_LocalPosition.x
       value: 1.155
@@ -5714,10 +5522,6 @@ PrefabInstance:
     - target: {fileID: 5518967698196589791, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_LocalPosition.z
       value: -2.48
-      objectReference: {fileID: 0}
-    - target: {fileID: 5851444519229687131, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
-      propertyPath: m_Layer
-      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 8911947063722212602, guid: 215f8d16de6876342bf85af7ff03ad56, type: 3}
       propertyPath: m_LocalScale.x

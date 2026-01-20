@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Assets.Script
 {
-    internal class MutatedHuamn : AIPathfinding
+    internal class SpiderAI : AIPathfinding
     {
         [Header("Mutant Health")]
         [SerializeField] private float maxAIInsectHP = 50f; // Max hp för AI insekten
@@ -39,6 +39,27 @@ namespace Assets.Script
 
         //drain prer sec
         [SerializeField] private float venomStaimnaDrainPS = 2f;
+
+        [Header("Spider goopballattack")]
+        //själva bollen
+        [SerializeField] private GameObject goopBallPrefab;
+        [SerializeField] private  Transform TransformGoopCreationPoint;
+
+        //Attackegeskper hos slämbollen
+        //styrkan som bollen avfyras med 
+        [SerializeField] private float goopShotStrengh;
+
+         //En varibel för tiden om behöver ha passerat §
+         [SerializeField] private float goopShotCoOLDown;
+
+        //Attacken´s räckhåll
+        [SerializeField] private float goopShotRange;
+
+        //Timern
+        private float goopTimer = 0f;
+
+
+
 
         [Header("SpiderAI intelli")]
 
@@ -195,6 +216,12 @@ namespace Assets.Script
             {
                 aiAttackTimer -= Time.deltaTime; //nedräkning
             }
+
+            //uppdaterar timern för nedsliming
+            if(goopTimer > 0f)
+            {
+                goopTimer -= Time.deltaTime;
+            }
         }
 
         protected override void ExecuteIdle()
@@ -247,6 +274,13 @@ namespace Assets.Script
             {
                 //uppdateras destinationen till den aktuella spelarpositionen
                 navAgent.SetDestination(playerTransformTarget.position);
+
+                //skjuter slimebollar mot spelaren när spelarne är inom räckvidd
+                if (distanceToTarget > aiAttackRadius && distanceToTarget <= goopShotRange)
+                {
+                    ShootGoopBall();
+
+                }
             }
 
 
@@ -346,6 +380,18 @@ namespace Assets.Script
         public void Dead()
         {
             ChangeState(AiState.Dead);
+        }
+
+        //Metod som förbereder och avfyrar den slimeiga bollen
+        private void ShootGoopBall()
+        {
+            //Kollar först om cooldownen ör klart
+            if(goopShotCoOLDown > 0f)
+            {
+                return;
+            }
+
+            // Kolla
         }
         //Barnklassernas olika egenskaper
         protected override void UniqueBehavior()
