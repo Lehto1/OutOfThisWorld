@@ -389,9 +389,37 @@ namespace Assets.Script
             if(goopShotCoOLDown > 0f)
             {
                 return;
+            } 
+
+            //En sökerhets kontroll
+            if(goopBallPrefab == null|| TransformGoopCreationPoint == null || playerTransformTarget == null)
+            {
+                //Saknar objectet
+                Debug.LogWarning($"{gameObject.name} lacks the propper gpupball set up");
+                return;
             }
 
-            // Kolla
+            //spawnar denna boll
+            //instantiatar en boll
+            GameObject goopBall = Instantiate(goopBallPrefab, TransformGoopCreationPoint.position, Quaternion.identity);
+
+            //Beräknar riktning mot spelaren
+            Vector3 directionToPlayer = (playerTransformTarget.position - TransformGoopCreationPoint.position).normalized;
+
+            //applicerar en kraftt på denna boll 
+            Rigidbody goopRb = goopBall.GetComponent<Rigidbody>();
+            if (goopRb != null)
+            {
+                goopRb.linearVelocity = directionToPlayer * goopShotStrengh; // avstånd gpnger stryka
+
+
+
+            }
+
+            //startat en cooldown
+            goopTimer = goopShotCoOLDown;
+
+            Debug.Log($"{gameObject.name} FIRED A GOOPBALL AT THE PLAYER");
         }
         //Barnklassernas olika egenskaper
         protected override void UniqueBehavior()

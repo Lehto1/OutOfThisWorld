@@ -1,3 +1,4 @@
+using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Experimental.GlobalIllumination;
 
@@ -11,6 +12,12 @@ public class Movement : MonoBehaviour
     [SerializeField] private float staminaDrainPS = 18f; //Hur mycket stamina som förbrukas per sekund vid springande
     [SerializeField] private float minStaminaRequiredToSprint = 6f; //mINSTA STAMMINA som krävs för att springa
 
+    [Header("SpiderInteract")]
+    // den nuvariga multiplikationsfaktorn för 
+    [SerializeField] private float currentSpeedMult = 1f;
+
+    //
+    [SerializeField] private float slownessTimer = 0f;
     Rigidbody RB;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -36,101 +43,125 @@ public class Movement : MonoBehaviour
         IsCrouching();
         RunningOrNot();
         MovementStuff();
-    }
 
-    void MovementStuff() //Includes keybinds and code for moving the player
-    {
-        RB.angularVelocity = new Vector3(0, 0, 0);
-        RB.linearVelocity = new Vector3(0, RB.linearVelocity.y, 0);
+        //Uppdaterar slowness effect
+        if (slownessTimer > 0f)
+        {
+            slownessTimer -= Time.deltaTime;
 
-        if (Input.GetKey(KeyCode.W) && Crouching == false) // If sats for att go bakåt och framåt när man står up
-        {
-            RB.linearVelocity = Running * transform.forward;
-        }
-        else if (Input.GetKey(KeyCode.S) && Crouching == false)
-        {
-            RB.linearVelocity = Running * -transform.forward;
-        }
-
-        if (Input.GetKey(KeyCode.W) && Crouching == true) // If sats for att go bakåt och framåt när man är crouching
-        {
-            RB.linearVelocity = transform.forward;
-        }
-        else if (Input.GetKey(KeyCode.S) && Crouching == false)
-        {
-            RB.linearVelocity = -transform.forward;
-        }
-
-
-        if (Input.GetKey(KeyCode.A)) //If sats för att rotera din käraktär
-        {
-            RB.angularVelocity = new Vector3(0, -4, 0);
-        }
-        else if (Input.GetKey(KeyCode.D))
-        {
-            RB.angularVelocity = new Vector3(0, 4, 0);
-        }
-    }
-
-    void RunningOrNot()
-    {
-        //
-
-        if (playerHpScript == null)
-        {
-            if (Input.GetKey(KeyCode.LeftShift)) //Används för att ändra spelarens hastighet när de springer
+            //återställer när timern är slut
+            if (slownessTimer <= 0f)
             {
+                currentSpeedMult = 1f;
+                Debug.Log("Slowness deactivated");
+            }
+        }
+
+        void MovementStuff() //Includes keybinds and code for moving the player
+        {
+            RB.angularVelocity = new Vector3(0, 0, 0);
+            RB.linearVelocity = new Vector3(0, RB.linearVelocity.y, 0);
+
+            if (Input.GetKey(KeyCode.W) && Crouching == false) // If sats for att go bakåt och framåt när man står up
+            {
+                RB.linearVelocity = Running * transform.forward;
+            }
+            else if (Input.GetKey(KeyCode.S) && Crouching == false)
+            {
+                RB.linearVelocity = Running * -transform.forward;
+            }
+
+            if (Input.GetKey(KeyCode.W) && Crouching == true) // If sats for att go bakåt och framåt när man är crouching
+            {
+                RB.linearVelocity = transform.forward;
+            }
+            else if (Input.GetKey(KeyCode.S) && Crouching == false)
+            {
+                RB.linearVelocity = -transform.forward;
+            }
+
+
+            if (Input.GetKey(KeyCode.A)) //If sats för att rotera din käraktär
+            {
+                RB.angularVelocity = new Vector3(0, -4, 0);
+            }
+            else if (Input.GetKey(KeyCode.D))
+            {
+                RB.angularVelocity = new Vector3(0, 4, 0);
+            }
+        }
+
+        void RunningOrNot()
+        {
+            //
+
+            if (playerHpScript == null)
+            {
+                if (Input.GetKey(KeyCode.LeftShift)) //Används för att ändra spelarens hastighet när de springer
+                {
+                    Running = 12;
+                }
+                else
+                {
+                    Running = 6;
+                }
+
+                return; //avlustar om det inte finns stamina
+
+            }
+
+            //Kollar om spelaren försöker spinga 
+            //Omr spelaren håller ned LeftShift
+            bool wantsToRun = Input.GetKey(KeyCode.LeftShift);
+
+            //boolean flag 
+            //har spelaren tillräckligt med stamina för att få spring a eller inte 
+            bool hasStaminaLeft = playerHpScript.HasSufficentStamina(minStaminaRequiredToSprint);
+
+            if (wantsToRun && hasStaminaLeft && Crouching == false)
+            {
+                //spelaren srpinger här
+
+                //öker dess hastighet
                 Running = 12;
+
+                //räknaer sedan ut hur mycket stamina som bör dras från spelaren
+                float staminaCostCurrentFrame = staminaDrainPS * Time.deltaTime;
+
+                //använd stamina genom playerHealth
+                playerHpScript.UseStamina(staminaCostCurrentFrame);
+
             }
             else
             {
+                //spelaren går , 
                 Running = 6;
             }
 
-            return; //avlustar om det inte finns stamina
 
         }
 
-        //Kollar om spelaren försöker spinga 
-        //Omr spelaren håller ned LeftShift
-        bool wantsToRun = Input.GetKey(KeyCode.LeftShift);
-
-        //boolean flag 
-        //har spelaren tillräckligt med stamina för att få spring a eller inte 
-        bool hasStaminaLeft = playerHpScript.HasSufficentStamina(minStaminaRequiredToSprint);
-
-        if (wantsToRun && hasStaminaLeft && Crouching == false)
+        void IsCrouching()
         {
-            //spelaren srpinger här
-
-            //öker dess hastighet
-            Running = 12;
-
-            //räknaer sedan ut hur mycket stamina som bör dras från spelaren
-            float staminaCostCurrentFrame = staminaDrainPS * Time.deltaTime;
-
-            //använd stamina genom playerHealth
-            playerHpScript.UseStamina(staminaCostCurrentFrame);
-
+            if (Input.GetKeyDown(KeyCode.LeftControl) && Crouching == false) //Gör så att man kan stänga av och sätta på crouching
+            {
+                Crouching = true;
+            }
+            else if (Input.GetKeyDown(KeyCode.LeftControl) && Crouching == true)
+            {
+                Crouching = false;
+            }
         }
-        else
-        {
-            //spelaren går , 
-            Running = 6;
-        }
-
-
     }
 
-    void IsCrouching()
+
+ public void ApplySlowness(float multi, float duration)
     {
-        if (Input.GetKeyDown(KeyCode.LeftControl) && Crouching == false) //Gör så att man kan stänga av och sätta på crouching
-        {
-            Crouching = true;
-        }
-        else if (Input.GetKeyDown(KeyCode.LeftControl) && Crouching == true)
-        {
-            Crouching = false;
-        }
+        currentSpeedMult = multi;
+
+        slownessTimer = duration;
+
+
+
     }
 }
