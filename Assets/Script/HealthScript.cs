@@ -165,6 +165,11 @@ public class HealthScript : MonoBehaviour
         //uppdatera det återhämtande stamminavärde en varje frame
         RegenStamina();
 
+
+        //Uppdaterar alla sårs infektionstatus
+        UpdateWoundInfections();
+
+
         UpdateUI(); //uPPDATERAR klasens kopplade UI komponenter
 
          
@@ -264,6 +269,8 @@ public class HealthScript : MonoBehaviour
         ////Om stamina inte är full, så återhämtas den
         if(currentStamina < maxinumStamina)
         {
+            //Hämtar den rätta multiplikatorn baserat på hälsotillståndet
+            float staminaMulti = GetStaminaStateMulti(state);
             // ökar stmaina paserat på deltatime
             currentStamina += staminaRegen * Time.deltaTime;
 
@@ -279,7 +286,35 @@ public class HealthScript : MonoBehaviour
         }
 
             }
-   
+
+    //Denna metod retunerar en stamina-multiplikator baserat på spelarens hälsotillstånd
+    private float GetStaminaStateMulti(HealthState currentState)
+    {
+        //Switch kollar vilket tillstån spelaren är i 
+
+        switch (currentState)
+        {
+            case HealthState.Healthy:
+                //bär frisk
+                return staminaMultiplierWhileHealthy;
+            case HealthState.Injured:
+                //skadad spelare
+                return staminaMultiplierWhileInjured;
+            case HealthState.Critical:
+                //kritisk
+                return staminaMultiplierWhileCritical;
+            case HealthState.Dying:
+                //döende
+                return staminaMultiplierWhileDying;
+            case HealthState.Death:
+                return 0f;
+
+            default:
+                return 1f; //en fallback
+
+        }
+
+    }
     //Kontrollerar om spelaren har tillräckligt med stamina 
     //Rettunerar om stamina överstiger kravvärdet
 
@@ -288,6 +323,7 @@ public class HealthScript : MonoBehaviour
         return currentStamina >= requiredAmount;
     }
 
+    
     //En metod som ppdaterar spelarens hälsotillstånd baserat på det nuvarnade
     // Metoden använder sig utav procentebestämma n angivna i enumen för att ävgöra vilket skick som spelaren
     // //befinner sig i
@@ -368,17 +404,23 @@ public class HealthScript : MonoBehaviour
         {
             case HealthState.Healthy:
                 //Inget sker, då spelaren är frisk
+                UnityEngine.Debug.Log("The player is healthy, [1.0x]");
+                // Här kommer jag lägga till
                 break;
             case HealthState.Injured:
+                UnityEngine.Debug.Log("The player is injured, [0.85]");
                 //fyller sen
                 break;
             case HealthState.Critical:
+                UnityEngine.Debug.Log("The player is critical, [0.65x]");
                 //fyller sen
                 break;
             case HealthState.Dying:
+                UnityEngine.Debug.Log("The player is healthy, [0.33x]");
                 //syller sen
                 break;
             case HealthState.Death:
+                UnityEngine.Debug.Log("Player dead, game over");
                 //Död state
                 //förstör spelaren
                 Destroy(gameObject);
@@ -497,7 +539,38 @@ public class HealthScript : MonoBehaviour
          //ändra färg på healthbar
          ColorChanger();
     }
-     void HealthbarFiller()
+    //Metod som kallas varje frame och uppdaterar skador och deras infektions status
+    private void UpdateWoundInfections()
+    {
+
+        //Loopar först egenom varje sår i listan
+        foreach (Wound wound in wounds)
+        {
+
+            //Uppdaterar infektionstatus för såret
+            wound.UpdateInfection(Time.deltaTime);
+
+            //Kontrollerar om såret är infekterat
+            if (wound.isInfected)
+            {
+                //Beräknar skadan från infektion
+                float infectionDamage = wound.infectionDPS * (wound.virusLoad / wound.maxVirusLoad) * Time.deltaTime;
+
+                //Applicerar skadan på spelarens hälsa
+                currentHealth -= infectionDamage;
+
+                //kONTROLERAR HÄLSAN så att den aldrig går under 0 eller över MAX
+                currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
+
+
+            }
+        }
+         UpdatePlayerHealthState();
+    }
+   
+    //Uppdaterar
+
+    void HealthbarFiller()
     {
         //Fyller Ui 
         healthBar.fillAmount = Mathf.Lerp(healthBar.fillAmount, currentHealth / maxHealth, uiLerpingSpeed); //Lerpar
