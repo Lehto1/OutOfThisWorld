@@ -232,34 +232,62 @@ public class HealthScript : MonoBehaviour
 
     }
 
-   
-    //Metod för att använda stamina, vilket minskar spelaren ´s enegri
-    //Denna mettod kallas när spealren gör något som förbrukar energi 
-    public void UseStamina(float stmAmount)
+    //En metod för att behandla ett sår 
+    public void TreatWoundInfection(int woundId, float healingAMount)
     {
-        //Det går ite för denna metod att använda 0 stamina,
-        //dätmed so kommer metod returna ifall stmAmount är 0
+        //Finner såret
+        Wound wound = wounds.Find(w => w.id == woundId);
 
-        if (stmAmount <= 0)
+        //kontrollerar om såret hittades och ifall det är infekterat
+        if (wound != null && wound.isInfected)
         {
-            UnityEngine.Debug.LogWarning("Stamina requirement not ");
-            return;
+
+            //Påbörjar behandligen
+            wound.TreatWoundInfection(healingAMount);
+
+            UseStamina(6f);
 
         }
-
-        //minskar stamina
-        currentStamina -= stmAmount;
-
-        //jag säkkerställer h'r att stamina värdet aldrig går utanför rimliga värde. 
-        //går inte över max, går inte till minus
-        currentStamina = Mathf.Clamp(currentStamina,0,maxinumStamina);
-
-        // triggrar event onStaminachanged
-        OnStaminaChnge?.Invoke(currentStamina);
-
-        UnityEngine.Debug.Log($"Stamina used : {stmAmount}, New stamina amout : {currentStamina}/{maxinumStamina}");
+        else if (wound == null)
+        {
+            //hittade inget passande sår 
+            /
+            UnityEngine.Debug.LogWarning($"{woundID} ID could not be found");
+        }
+        else
+        {
+            //Inte infekterat
+            UnityEngine.Debug.LogWarning($"{woundID} is not infected, can no be treated");
+        }
 
     }
+            //Metod för att använda stamina, vilket minskar spelaren ´s enegri
+            //Denna mettod kallas när spealren gör något som förbrukar energi 
+            public void UseStamina(float stmAmount)
+            {
+                //Det går ite för denna metod att använda 0 stamina,
+                //dätmed so kommer metod returna ifall stmAmount är 0
+
+                if (stmAmount <= 0)
+                {
+                    UnityEngine.Debug.LogWarning("Stamina requirement not ");
+                    return;
+
+                }
+
+                //minskar stamina
+                currentStamina -= stmAmount;
+
+                //jag säkkerställer h'r att stamina värdet aldrig går utanför rimliga värde. 
+                //går inte över max, går inte till minus
+                currentStamina = Mathf.Clamp(currentStamina, 0, maxinumStamina);
+
+                // triggrar event onStaminachanged
+                OnStaminaChnge?.Invoke(currentStamina);
+
+                UnityEngine.Debug.Log($"Stamina used : {stmAmount}, New stamina amout : {currentStamina}/{maxinumStamina}");
+
+            }
 
     //Denna metod kallas från update varje frame.
     //Tillåter en ölångsam återhämtning av stamina
@@ -272,7 +300,7 @@ public class HealthScript : MonoBehaviour
             //Hämtar den rätta multiplikatorn baserat på hälsotillståndet
             float staminaMulti = GetStaminaStateMulti(state);
             // ökar stmaina paserat på deltatime
-            currentStamina += staminaRegen * Time.deltaTime;
+            currentStamina += staminaRegen * staminaMulti * Time.deltaTime;
 
             // säkkerställer att värdet allrig överstiger max
             currentStamina = Mathf.Clamp(currentStamina,0,maxinumStamina);
@@ -538,6 +566,40 @@ public class HealthScript : MonoBehaviour
         StaminaBarFiller();
          //ändra färg på healthbar
          ColorChanger();
+
+        //Uppdaterar Sår och HP info i Text UI
+        UpdateWoundUI();
+    }
+
+    //Uppdaterar SÅRSTATUS UI
+    private void UpdateWoundUI()
+    {
+       //uppdaterar hälsotexten
+       //
+       if(healthText != null)
+        {
+
+            //Räknar hur många sår som är infekterade
+            int infectedAmount = GetCountInfectedWounds();
+
+            //Texraden
+            string playerWoundInfo = "";
+            playerWoundInfo += $"HP:  {currentHealth}/{maxHealth} ({HPPercent * 100}) \n ";
+            //Lägger till ytterligare
+            playerWoundInfo += $"Wounds : {wounds.Count} / Infected {infectedAmount} \n ";
+            //ytterligare
+            playerWoundInfo += $"State : {state}";
+
+            //sätter texten
+            healthText.text = playerWoundInfo;
+        }
+
+       //Uppdaterar stamina texten
+       if(StaminaText != null)
+        {
+            StaminaText.text = $"Stamina : {currentStamina}/{maxinumStamina}";
+        }
+
     }
     //Metod som kallas varje frame och uppdaterar skador och deras infektions status
     private void UpdateWoundInfections()
