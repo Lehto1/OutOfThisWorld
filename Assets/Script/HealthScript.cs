@@ -243,7 +243,7 @@ public class HealthScript : MonoBehaviour
         {
 
             //Påbörjar behandligen
-            wound.TreatWoundInfection(healingAMount);
+            wound.TreatInfection(healingAMount);
 
             UseStamina(6f);
 
@@ -251,7 +251,7 @@ public class HealthScript : MonoBehaviour
         else if (wound == null)
         {
             //hittade inget passande sår 
-            /
+            
             UnityEngine.Debug.LogWarning($"{woundID} ID could not be found");
         }
         else

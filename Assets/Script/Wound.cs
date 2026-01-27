@@ -10,6 +10,7 @@ public class Wound : MonoBehaviour
     public float woundSeverity;
     public bool isInfected; // flagg som signerar ifall skadan är infekterad eller inte
     public float infectionTime;
+    public float infectionDPS;
 
     // Den tid som det kommer ta för infekteras automatiskt
     float timeUntillAutoInfection;
