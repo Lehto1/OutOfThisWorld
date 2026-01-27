@@ -610,7 +610,7 @@ public class HealthScript : MonoBehaviour
         {
 
             //Uppdaterar infektionstatus för såret
-            wound.UpdateInfection(Time.deltaTime);
+            wound.UpdateWoundInfection(Time.deltaTime);
 
             //Kontrollerar om såret är infekterat
             if (wound.isInfected)
