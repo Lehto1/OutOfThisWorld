@@ -3,6 +3,7 @@ using UnityEngine;
 
 public class Camerafollow : MonoBehaviour
 {
+    [Header("Base variables")]
     [SerializeField] Transform player;      // Spelaren som kameran följer
     [SerializeField] Vector3 offset = new Vector3(0, 1.5f, -4f);        // Avstånd bakom/ovanför spelaren
     [SerializeField] float positionSmoothSpeed = 5f;
@@ -11,8 +12,21 @@ public class Camerafollow : MonoBehaviour
     [SerializeField] float minumumCollisionDistance = 0.8f;
     [SerializeField] float camRadius = 0.3f; // Till för spherecast inte raycast
 
+    [Header("Speed zoom")]
+    [SerializeField]  float minZoomDistance = 2.0f; // Kammeran kommer åtminnstånde zooma till detta
+    [SerializeField] float maxZoomDistance = 6f; //Det maximala som kammeran kommer kunna zooma
+    [SerializeField] float zoomSmothingSpeed = 2f;
+    [SerializeField] float maxSpeed = 14f;
+
+    [Header("When low stamina")]
+    [SerializeField] float staminaLowThresh = 20f; // OM stamina understiger detta värde kommer spelarkameran påverkas
+    [SerializeField] float cameraShakeMagnitudé = 0.2f; // den kraft som kameran kommer skaka/gunga med
+    [SerializeField] float cameraShakeSpeed = 2f; //hastigheten som kameran kommer gunga med
+
+
     private Vector3 Velocity;
     private float currentDistance; // Nuvariga avstånd
+
 
     void Update()
     {
