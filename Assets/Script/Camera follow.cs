@@ -9,6 +9,7 @@ public class Camerafollow : MonoBehaviour
     [SerializeField] float rotationSmoothSpeed = 10f;
     [SerializeField] LayerMask collisionMask;
     [SerializeField] float minumumCollisionDistance = 0.8f;
+    [SerializeField] float camRadius = 0.3f; // Till för spherecast inte raycast
 
     private Vector3 Velocity;
     private float currentDistance; // Nuvariga avstånd
@@ -20,9 +21,13 @@ public class Camerafollow : MonoBehaviour
         {
             return;
         }
+        //Tar baort Y rotationen från spelaren 
+        Quaternion onlyYawCamera = Quaternion.Euler(0f, player.eulerAngles.y, 0f);
 
-        //Beräknar målpositionen
-        Vector3 targPos = player.position + player.TransformDirection(offset);
+        //Beräknar målpositionen baserat på spelarensr rotation
+        //Rotterar barra runt Y led
+
+        Vector3 targPos = player.position + onlyYawCamera * offset;
 
         //kontrollera kollisionen
         //flyttar närmare om något träffas
@@ -31,24 +36,27 @@ public class Camerafollow : MonoBehaviour
         float wantedDistance = offset.magnitude;
         currentDistance = wantedDistance;
 
-        //Raycast
-        if (Physics.Raycast(player.position, directionToCamera, out RaycastHit hit, wantedDistance, collisionMask))
+        //Startar rayvcasten lite ovan spealren
+        Vector3 rayCastOrginPos = player.position + Vector3.up * 1.0f;
+
+        //Spherecast istället, 
+        if (Physics.SphereCast(rayCastOrginPos, camRadius, directionToCamera, out RaycastHit hit, wantedDistance, collisionMask))
         {
             currentDistance = Mathf.Max(hit.distance - minumumCollisionDistance, 0.3f);
         }
 
         //uppdatera targ pos baserat på distansen
-        targPos = player.position + directionToCamera * currentDistance;
+        targPos = rayCastOrginPos + directionToCamera * currentDistance;
 
         //mjuk
         transform.position = Vector3.SmoothDamp(transform.position, targPos, ref Velocity, 1f / positionSmoothSpeed);
 
         //Kammeran tittar på spelaren
-        Vector3 lookatPlayer = player.position + Vector3.up * 0.6f;
-        //över huvudet 
-        Vector3 dirrectionToLook = (lookatPlayer - transform.position).normalized;
-        Quaternion targetRotation = Quaternion.LookRotation(dirrectionToLook);
+        //Kammeran tittar i spelaren riktning
+        Vector3 playerLookDirection = player.forward; //Tittar i samma riktning som spealren
 
+        //Skapar en  roataion baseat på spelarens blickriktning
+        Quaternion targetRotation = Quaternion.LookRotation(playerLookDirection, Vector3.up);
         // Kameran har samma rotation som spelaren
         transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, rotationSmoothSpeed * Time.deltaTime);
     }

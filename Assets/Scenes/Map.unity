@@ -4281,7 +4281,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Camerafollow
   player: {fileID: 2119892450}
   offset: {x: 0, y: 0, z: 0}
-  smoothSpeed: 5
+  positionSmoothSpeed: 5
+  rotationSmoothSpeed: 10
+  collisionMask:
+    serializedVersion: 2
+    m_Bits: 8
+  minumumCollisionDistance: 0.8
+  camRadius: 0.3
 --- !u!1 &1203573991 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: cba73eb0bc3055e45a78f9b154c5741a, type: 3}
@@ -8222,6 +8228,8 @@ MonoBehaviour:
   playerHpScript: {fileID: 0}
   staminaDrainPS: 18
   minStaminaRequiredToSprint: 6
+  currentSpeedMult: 1
+  slownessTimer: 0
 --- !u!65 &2119892447
 BoxCollider:
   m_ObjectHideFlags: 0
