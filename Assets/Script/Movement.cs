@@ -1,4 +1,5 @@
 using JetBrains.Annotations;
+using Unity.VisualScripting.FullSerializer;
 using UnityEngine;
 using UnityEngine.Experimental.GlobalIllumination;
 
@@ -16,9 +17,42 @@ public class Movement : MonoBehaviour
     // den nuvariga multiplikationsfaktorn för 
     [SerializeField] private float currentSpeedMult = 1f;
 
+    [Header("Acceleration")]
+    [SerializeField] private float accTime = 0.4f; //Hr snabbt spelaren kan nå full hastighet
+    [SerializeField] private float deAccTime = 0.2f;  //Hur snabbt spelaren stannar upp
+
+    [Header("Momentum")]
+    [SerializeField] private float retentionOfMomentum = 0.4f; //Den andel fart som behålls vid sväng
+
+    [Header("Extra Sprinting")]
+    [SerializeField] private float burstingSprintMultiplier = 1.3f; //Hur ycket snabbare spelaren accelerrar under "Burst" tiden
+    [SerializeField] private float durationOfBurts = 0.3f; //Hur länge demma "burst varar
+
+    [Header("Crouch slide")]
+    [SerializeField] private float durationOfCrouchSlide = 0.7f; //Hur länge spelarens glidande varar
+    [SerializeField] private float speedOfCrouchSlide = 11f; // Dess hastighet
+
+    [Header("Strafe Movement")]
+    [SerializeField] private float strafingSpeed = 1f; // Sidrörelse
+
+    
+
     //
     [SerializeField] private float slownessTimer = 0f;
     Rigidbody RB;
+
+    //Privata variabler
+    private float currentSpeed = 0f; //Nuvarande hastighet
+    private float velocitySpeed = 0f; // Smo0thdamping
+    private bool wasRunning = false; //Booleanflag, sprang spelaren?
+    private bool isCrouchSliding = false; // 
+    private Vector3 directionOfSlide; //den riktning som spelaren glider åt
+    private float sprintSpeedBust = 0f;
+    private Vector3 previousVelocity; //Senaste 
+
+
+    
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -40,9 +74,25 @@ public class Movement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        IsCrouching();
-        RunningOrNot();
-        MovementStuff();
+        //Uppdaterar alla timers
+        //Uppdaterar sprint burst timer 
+        if(sprintSpeedBust > 0f)
+        {
+            sprintSpeedBust -= speedOfCrouchSlide; //Minskar timern men varje frame
+        }
+
+        //uppdaterar crouch-slide timern
+        if(isCrouchSliding && durationOfCrouchSlide > 0f)
+        {
+            //Minskar
+            durationOfCrouchSlide -= Time.deltaTime;
+
+            //Om slide:en är avlutad, Avlutas slide:en
+            if(durationOfCrouchSlide <= 0f)
+            {
+                isCrouchSliding = false; // slutar glida
+            }
+        }
 
         //Uppdaterar slowness effect
         if (slownessTimer > 0f)
@@ -56,9 +106,15 @@ public class Movement : MonoBehaviour
                 Debug.Log("Slowness deactivated");
             }
         }
+        //Anropar funktioner
+        IsCrouching();
+        RunningOrNot();
+        MovementStuff();
+
 
         void MovementStuff() //Includes keybinds and code for moving the player
         {
+            //Nollställer rotation och förhindrar att spelaren flippar
             RB.angularVelocity = new Vector3(0, 0, 0);
             RB.linearVelocity = new Vector3(0, RB.linearVelocity.y, 0);
 
@@ -89,6 +145,38 @@ public class Movement : MonoBehaviour
             {
                 RB.angularVelocity = new Vector3(0, 4, 0);
             }
+        }
+
+        //Hantering utav "Crouch slide"
+
+        if(isCrouchSliding)
+        {
+            //beräknar vart i slide:en som spelaren befinner sig
+            float playerSlideProgress = 1f - (durationOfCrouchSlide / 0.7f); //0.7 är max
+
+            //Minskar glidhastigheten över tid----- från speedOfCrouchslide till 0 
+            float currentSlidingSpeed = Mathf.Lerp(speedOfCrouchSlide, 0, playerSlideProgress);
+
+            //Skapar en glid-rörelse i den riktning som spelaren färdas i 
+            Vector3 velocityOfCrouchSlide = directionOfSlide * currentSlidingSpeed;
+
+            //Applicerar glid-rörelsen på spelaren
+            RB.linearVelocity = new Vector3(velocityOfCrouchSlide.x, RB.linearVelocity.y, velocityOfCrouchSlide.z);
+
+            return; //stoppar
+
+        }
+
+        //Beräknar rörelseriktningen + strafe
+        Vector3 playerMoveDirection = Vector3.zero; //börjar från noll
+
+        //OM spelaren inte crouchar loopas denna
+        if(!Crouching)
+        {
+            //Framåt och bakåt
+            playerMoveDirection += transform.forward * ;
+
+            //
         }
 
         void RunningOrNot()
@@ -160,8 +248,6 @@ public class Movement : MonoBehaviour
         currentSpeedMult = multi;
 
         slownessTimer = duration;
-
-
 
     }
 }
