@@ -494,12 +494,10 @@ public class HealthScript : MonoBehaviour
                 //skappaet ett nytt object av sorten wound
                 Wound newWound = new Wound(woundID++, damage);
 
-
                 //LÄGGER TILL TILL LISTAN
                 wounds.Add(newWound);
                 //triggrar evvent
                 OnAdditionalWound?.Invoke(newWound);
-
 
                 //logg
                 UnityEngine.Debug.Log($"New wound created, ID : {newWound.id}. DMG : {damage}, Tot wounds {wounds.Count}");
@@ -516,6 +514,11 @@ public class HealthScript : MonoBehaviour
     public int GetCountOfWounds()
     {
         return wounds.Count;
+    }
+
+    public float GetCurrentStamina()
+    {
+        return currentStamina;
     }
 
     //en metod för att även hämta alla infekterade sår, räknar egenom och 
@@ -623,8 +626,6 @@ public class HealthScript : MonoBehaviour
 
                 //kONTROLERAR HÄLSAN så att den aldrig går under 0 eller över MAX
                 currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
-
-
             }
         }
          UpdatePlayerHealthState();
