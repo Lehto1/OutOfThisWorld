@@ -255,6 +255,16 @@ namespace Assets.Script
             {
                 goopTimer -= Time.deltaTime;
             }
+
+            //Goop-system 
+            UpdatSpiderAIeGoopEnergy(); //Regenerarar enenergi
+
+            //Om spelaren inte är i turret läga, skall koden updpatera och nolsätlla alla turret-timers
+            if (!isCurrentlyInTurretMode)
+            {
+                spiderTurretLockTimer = 0f;
+                spiderGoopChargeTimR = 0f;
+            }
         }
 
         protected override void ExecuteIdle()
@@ -580,7 +590,7 @@ namespace Assets.Script
             if (spiderGoopChargeTimR >= spiderGoopChargingTime)
             {
                 //Skutwr goop
-                FireGoopBall();
+                ShootGoopBall();
 
                 //Nollställer laddningen
                 isGoopCharging = false;
@@ -673,6 +683,34 @@ namespace Assets.Script
 
         }
 
+        private void EnterTurretMode()
+        {
+            isCurrentlyInTurretMode = true;
+            spiderTurretLockTimer = 0f;
+            spiderGoopBurstTimr = 0;
+            goopBurstCount = 0;
+            isGoopCharging = false;
+
+            //Stoppar rörelse
+            navAgent.isStopped = true;
+            navAgent.velocity = Vector3.zero;
+
+            Debug.Log($"{gameObject.name} Has entered turret-mode, CUrrent aiming at player");
+        }
+        private void ExitTurretMode()
+        {
+            isCurrentlyInTurretMode = false;
+            spiderTurretLockTimer = 0f;
+            isGoopCharging= false;
+
+            //återupptar rörelse
+            navAgent.isStopped = false;
+
+            //startar goop cooldown
+            goopTimer = goopShotCoOLDown;
+
+            Debug.Log($"{gameObject.name} is now returning to hHunt mode");
+        }
         //Barnklassernas olika egenskaper
         protected override void UniqueBehavior()
         {
