@@ -299,31 +299,57 @@ namespace Assets.Script
 
         protected override void ExecuteChase()
         {
-            // börjar röra sig mot spelarens senas kända pos
-            navAgent.SetDestination(mostRecentPlayerPOS);
-
-            //ifall insekten får syn på spelaren så..
-            if (detectedPlayer && playerTransformTarget != null)
+            //Turret 
+            //Om AI:n redan är i turret läga, ska dne forsätt amed turret logik
+            if(isCurrentlyInTurretMode)
             {
-                //uppdateras destinationen till den aktuella spelarpositionen
-                navAgent.SetDestination(playerTransformTarget.position);
+                UppdateSpiderTurretLock();
+                UpdateGoopCharge();
+                UpdateAISpiderBurstDelay();
 
-                //skjuter slimebollar mot spelaren när spelarne är inom räckvidd
-                if (distanceToTarget > aiAttackRadius && distanceToTarget <= goopShotRange)
-                {
-                    ShootGoopBall();
-
-                }
+                //Spindeln röre sig inte i turret läge 
+                navAgent.velocity = Vector3.zero;
+                return; //avlutar 
             }
 
+            // Om AI:n inte var i turretläge 
+            //Kollar koden om spelarenbefinnersig inom räckvidd
+            if (detectedPlayer && playerTransformTarget != null)
+            {
+                //Kontrollerar om spealren är inom reäckvidd
+                if (distanceToTarget <= goopShotRange && distanceToTarget > aiAttackRadius)
+                {
+                    //K ontrollerar om AI:n har tillräckligt med Energi
+                    if (spiderCurrentGoopEnergy >= goopSpiderEnergyCost)
+                    {
+                        //kontrolerar om goop-cooldownen är klar eller ej 
+                        if (goopTimer <= 0f)
+                        {
+                            //Påbörjar turretläget
+                            EnterTurretMode();
+                            return;
+                        }
+                    }
+                }
 
+
+                // börjar röra sig mot spelarens senas kända pos
+                navAgent.SetDestination(playerTransformTarget.position);
+
+            } else
+            {    // börjar röra sig mot spelarens senas kända pos
+                navAgent.SetDestination(mostRecentPlayerPOS);
+            }
+            
             //kollar om insekten äär nära nog spelaren för att mangla 
             if (distanceToTarget <= aiAttackRadius)
             {
+                //Om spelaren är vldigt nära, attackera direkt
                 ChangeState(AiState.Attack);
             }
 
         }
+
 
 
         protected override void ExecuteAttack()
@@ -418,41 +444,61 @@ namespace Assets.Script
         //Metod som förbereder och avfyrar den slimeiga bollen
         private void ShootGoopBall()
         {
-            //Kollar först om cooldownen ör klart
-            if(goopShotCoOLDown > 0f)
+            //Säkerhetskontroller
+            if(goopBallPrefab == null || spiderMuzzlePoint == null || playerTransformTarget == null)
             {
-                return;
-            } 
-
-            //En sökerhets kontroll
-            if(goopBallPrefab == null|| TransformGoopCreationPoint == null || playerTransformTarget == null)
-            {
-                //Saknar objectet
-                Debug.LogWarning($"{gameObject.name} lacks the propper gpupball set up");
+                Debug.LogWarning($"{gameObject.name} can not fire the goop, missing setup");
                 return;
             }
 
+            //Kollar spindels energinivå
+            if(spiderCurrentGoopEnergy < goopSpiderEnergyCost)
+            {
+                Debug.Log($"{gameObject.name} does not have enough energy required to fire goop");
+                return;
+            }
+
+            //Förutsäger splearens postiion
+            AiCalculatedTargetPOSPrediction();
+
+            //Beräknar riktingen mot den förutsagda positionen
+            Vector3 aiDirectionToPredictedTarget = (aiPredictedPlayerPos - spiderMuzzlePoint.position).normalized;
+
+            //lägger till ett slumpat fel i ai:ns gissing
+            float hitChance = UnityEngine.Random.value;
+            if(hitChance > spiderAimingAccuracy)
+            {
+                //Speindeln missade 
+                //Den nya positionen ska avika lite från den ursprungliga målpositionen
+                Vector3 rndDeviation = UnityEngine.Random.insideUnitSphere * 0.3f;
+                aiDirectionToPredictedTarget = (aiDirectionToPredictedTarget + rndDeviation).normalized;
+                Debug.Log($"{gameObject.name} missed it's shot");
+
+            }
+
+            //Kollar först om cooldownen är klar
+
+            //Skapar bollen
             //spawnar denna boll
             //instantiatar en boll
             GameObject goopBall = Instantiate(goopBallPrefab, TransformGoopCreationPoint.position, Quaternion.identity);
 
-            //Beräknar riktning mot spelaren
-            Vector3 directionToPlayer = (playerTransformTarget.position - TransformGoopCreationPoint.position).normalized;
-
-            //applicerar en kraftt på denna boll 
-            Rigidbody goopRb = goopBall.GetComponent<Rigidbody>();
-            if (goopRb != null)
+            //Applicerar kraft och hastighet på bollen 
+            Rigidbody goopRigidBody = goopBall.GetComponent<Rigidbody>();
+            //applicerar en kraftt på denna boll
+            if (goopRigidBody!= null)
             {
-                goopRb.linearVelocity = directionToPlayer * goopShotStrengh; // avstånd gpnger stryka
-
-
+                goopRigidBody.linearVelocity = aiDirectionToPredictedTarget * goopProjectileSpeeed; // avstånd gpnger stryka
 
             }
 
-            //startat en cooldown
-            goopTimer = goopShotCoOLDown;
+            //Förvrukar spindelns energi
+            spiderCurrentGoopEnergy -= goopSpiderEnergyCost;
+           
+          
 
-            Debug.Log($"{gameObject.name} FIRED A GOOPBALL AT THE PLAYER");
+            Debug.Log($"{gameObject.name} FIRED A GOOPBALL AT THE PLAYER  {spiderCurrentGoopEnergy}/{goopSpiderMaxEnergy}");
+
         }
 
         //Denna metod  roterar spideln så att den siktar på spelaren
@@ -517,10 +563,116 @@ namespace Assets.Script
             Debug.Log($"Goop charigng {(chargingProcess * 100)}% ");
         }
 
-private void UpdateGoopCharge()
+        private void UpdateGoopCharge()
         {
-            if ()
+            if (!isGoopCharging)
+            {
+                return;
+            }
+
+            //Öka laddnings timern 
+            spiderGoopChargeTimR += Time.deltaTime;
+
+            //Animerar under laddningen
+            AnimateSpiderGoopCharge();
+
+            //Spinder skjuter när laddningen är klar
+            if (spiderGoopChargeTimR >= spiderGoopChargingTime)
+            {
+                //Skutwr goop
+                FireGoopBall();
+
+                //Nollställer laddningen
+                isGoopCharging = false;
+                spiderGoopChargeTimR = 0f;
+
+                //Ökar burst-räknaren
+                goopBurstCount++; //Ökar  täknaren
+
+                //Om spindeln har avfyrat tillräckligt många skott, skall den omedelbart sluta
+                if (goopBurstCount >= goopBurstCount)
+                {
+                    //avlutar "Turret"läget , återgår till jakt 
+                    ExitTurretMode();
+                } else
+                {
+                    //Väntar lite innan nästa skjuting i bursten
+                    //DelY
+                    spiderGoopBurstTimr = goopBurstAiDelay;
+                }
+
+            }
+
         }
+
+        private void UpdateAISpiderBurstDelay()
+        {
+            //Väntar mellan bollarnas avfyrning i burst
+            if (spiderGoopBurstTimr > 0f)
+            {
+
+                spiderGoopBurstTimr -= Time.deltaTime; // mINSKAR timern
+
+                //När spindelns väntetid är över laddar den nästa boll 
+                if (spiderGoopBurstTimr <= 0f && goopBurstCounter < goopBurstCount)
+                {
+                    isGoopCharging = true;
+                    spiderGoopChargeTimR = 0f;
+                }
+
+
+            }
+
+        }
+        //Enerysystem
+        private void UpdatSpiderAIeGoopEnergy()
+        {
+            //oM SPINDELS ai LIGGER UDNER MAX, regenererar den 
+            if(spiderCurrentGoopEnergy < goopSpiderMaxEnergy)
+            {
+                spiderCurrentGoopEnergy += goopSpiderRegenPSec * Time.deltaTime;
+                spiderCurrentGoopEnergy = Mathf.Min(spiderCurrentGoopEnergy, maxAIInsectHP); //cAPPAR TILL MAX
+            }
+
+            float aiEnergyPercent = (spiderCurrentGoopEnergy / goopSpiderMaxEnergy) * 100;
+            if(aiEnergyPercent < 30f)
+            {
+                Debug.Log($"Low energy :{gameObject.name} Goop energy : {aiEnergyPercent}");
+            }
+        }
+
+
+        //AI:n beräknar spelarens förmodade postioin när goop träffar 
+        private void AiCalculatedTargetPOSPrediction()
+        {
+
+            //Säkkerhetskontroll
+            if(playerTransformTarget == null)
+            {
+                aiPredictedPlayerPos = playerTransformTarget.position;
+                return;
+            }
+
+            //Hä,mtar spelarens hastighet
+            Movement playerMovement = playerTransformTarget.GetComponent<Movement>();
+            Vector3 playerVel = Vector3.zero;
+
+            if(playerMovement != null)
+            {
+                playerVel = playerMovement.GetCurrentVelocity(); 
+            }
+
+            //Beräknar tiden som det tar för goopbollen att ny spelaren
+            float spiderDistanceToPLayer = distanceToTarget;
+            float timeToTatget = spiderDistanceToPLayer / goopProjectileSpeeed;
+
+            //AI:n förutsäger spelarens position
+            aiPredictedPlayerPos = playerTransformTarget.position + (playerVel * timeToTatget * aiTrajectoryPrediction);
+
+            Debug.Log($"Predited Pos:{aiPredictedPlayerPos}");
+
+        }
+
         //Barnklassernas olika egenskaper
         protected override void UniqueBehavior()
         {
