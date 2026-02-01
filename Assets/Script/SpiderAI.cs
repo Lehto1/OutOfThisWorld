@@ -55,6 +55,41 @@ namespace Assets.Script
         //Attacken´s räckhåll
         [SerializeField] private float goopShotRange;
 
+        //System för avfyrning av 'goop'
+        [Header("Spider TUrret system")]
+        [SerializeField] private bool isCurrentlyInTurretMode = false; //Flag, Är spindeln i turret-läget?
+        //Tid spindel får på sig att sikta på spealren 
+        [SerializeField] private float spiderTurretLockT = 0.8f; ////
+        //Goop laddning/återladdningstid'
+        [SerializeField] private float spiderGoopChargingTime = 0.7f;
+        //EN varuabler för hur snabbt spiden roterar för att sikta
+        [SerializeField] private float  spiderTurretRotationSpeed = 5f;
+
+        private float spiderTurretLockTimer = 0f; //En räknare för sikt-tiden
+        private float spiderGoopChargeTimR = 0.6f; // // tÄKNARE FÖR LADDNING 
+        private bool isGoopCharging = false; //Flag, laddar spinedeln 'goop' just nu?
+
+        [Header("Advanced Goop settings")] //
+        [SerializeField] private float goopProjectileSpeeed = 16f; //Bollens hastighet
+        [SerializeField] private float aiTrajectoryPrediction = 0.5f; //Hur långt fram som vi räknar spelarens position
+        [SerializeField] private float goopSpiderEnergyCost = 25f; // dEN Eneergi som spindel förbrukar per avfyrning
+        [SerializeField] private float goopSpiderMaxEnergy = 100f; //Max energi för spindelns goop system
+        [SerializeField] private float goopSpiderRegenPSec = 5f; // Regenerering per sekund
+        [SerializeField] private int goopBurstCount = 3; // Mä gden bollar som avfyrars per burst
+        [SerializeField] private float goopBurstAiDelay = 0.3f; // Tid mellan skotten/bollarna  i burst:en
+
+        private float spiderCurrentGoopEnergy = 100f; //nuvarande eneregi
+        private int goopBurstCounter = 0; //rän
+        private float spiderGoopBurstTimr = 0f; //
+
+        [Header("Goop Aiming")] // Siktesystem 
+        [SerializeField] private Transform spiderMuzzlePoint; //Den pos där goop-bollen spawnar från //Spindels eldpunkt
+        [SerializeField] private float spiderAimingAccuracy = 0.83f; // 83
+        private Vector3 aiPredictedPlayerPos = Vector3.zero; // Foörutsagt position
+
+
+
+
         //Timern
         private float goopTimer = 0f;
 
@@ -65,8 +100,7 @@ namespace Assets.Script
 
         //Spindeln blir riktigt sur när spelare nära
         [SerializeField] private float spiderAggroDistance = 15f;
-
-        //spindel kan gömma sig vänta på spelaren.
+         //spindel kan gömma sig vänta på spelaren.
         [SerializeField] private bool spiderCanHide = true;
 
         [SerializeField] private float spiderHideTime = 80f;
@@ -76,8 +110,7 @@ namespace Assets.Script
         //Rörele och rörelse typer 
         //Hur snabbt spiden rör sig vid normala tillstånd
         [SerializeField] private float spiderNormalSpeed = 5f;
-
-        //hur snabbt spidenl springer vid jakt
+         //hur snabbt spidenl springer vid jakt
         [SerializeField] private float spiderSprintingSpeed = 8f;
 
         //hur snabbts spideln kan kyrpa upp för väggar/ hinder
@@ -420,6 +453,73 @@ namespace Assets.Script
             goopTimer = goopShotCoOLDown;
 
             Debug.Log($"{gameObject.name} FIRED A GOOPBALL AT THE PLAYER");
+        }
+
+        //Denna metod  roterar spideln så att den siktar på spelaren
+        private void AimAtPlayerPos()
+        {
+            //En kontroll, FInns spelaren verkilgen?
+            if (playerTransformTarget == null) return;
+
+            //Beräknar riktning från spindel till spelaren
+            Vector3 directionSpiderToPlayer = (playerTransformTarget.position - transform.position).normalized;
+
+            //Skapar en roatiaon baserat på riktningen
+            Quaternion targetRot = Quaternion.LookRotation(directionSpiderToPlayer);
+
+            //Ler´par rotationen 
+            transform.rotation = Quaternion.Lerp(transform.rotation, targetRot, Time.deltaTime * spiderTurretRotationSpeed);
+
+            Debug.Log($"{gameObject.name} Aiming at player ");
+
+        }
+
+        //Uppdaterar turretlåsnings timern
+        private void UppdateSpiderTurretLock()
+        {
+            if (!isCurrentlyInTurretMode) {
+                return;
+            }
+
+            //Om spindeln inte redan låser, bör den börja göra det
+            if(spiderTurretLockTimer< spiderTurretLockT)
+            {
+                spiderTurretLockTimer += Time.deltaTime;
+                AimAtPlayerPos(); //Siktar samtidigt
+
+            } else
+            {
+                //Börjar med att ladda 
+                if(!isGoopCharging)
+                {
+                    isGoopCharging = true; ;
+
+                    spiderGoopChargeTimR = 0f;
+
+                    Debug.Log($"{gameObject.name} is now charging its goop");
+                }
+            }
+        }
+
+        //En metod som ger en visusel feedback Exempelvis vid laddning av goop
+        private void AnimateSpiderGoopCharge ()
+        {
+            //lagarar 
+            float chargingProcess = Mathf.Clamp01(spiderGoopChargeTimR / spiderGoopChargingTime); 
+
+            //Eldpunkten växer i storlek under laddning
+            if(spiderMuzzlePoint != null)
+            {
+                float pulsationScale = 1f + (chargingProcess * 0.6f); //växer
+
+                spiderMuzzlePoint.localScale = Vector3.one * pulsationScale; 
+            }
+            Debug.Log($"Goop charigng {(chargingProcess * 100)}% ");
+        }
+
+private void UpdateGoopCharge()
+        {
+            if ()
         }
         //Barnklassernas olika egenskaper
         protected override void UniqueBehavior()
