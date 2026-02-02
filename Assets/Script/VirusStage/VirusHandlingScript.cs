@@ -42,7 +42,7 @@ public abstract class VirusHandlingScript : MonoBehaviour
     // DRAIN VID aaktivt virus
     [SerializeField] private float drainOfStaminaActive = 10;
 
-    [SerializeField] private float drainOfStaminaCritical= 10;
+    [SerializeField] private float drainOfStaminaCritical = 10;
 
 
 
@@ -121,6 +121,26 @@ public abstract class VirusHandlingScript : MonoBehaviour
     //Timer för wound infektion
     private float woundTimer = 0f;
 
+    //Event för nör virust blir aktivt
+    //Alla stages kommer nu börja aplicera milda effekter
+    public event Action onActivatedVirus;
+
+    //Om virust blir kritiskt 
+    //Kommer detta ske
+    public event Action OnCriticalVirus;
+
+    //om virust blir terminalt 
+    public event Action OnTerminalVirus;
+
+    //Om virsut inte längre finns, om botat osv. 
+    //Rens på effekter
+    public event Action OnRemovedVIrus;
+
+    //mutationöknings event, Om 
+    public event Action<float> OnChangedMutation;
+
+    // Spelarens resitans ökar 
+    public event Action<float> OnChangedResistance;
 
     //Har events som triggras när virus byter mellan faserna
     public event Action<VirusStages> OnStageChange;
@@ -165,6 +185,7 @@ public abstract class VirusHandlingScript : MonoBehaviour
     {
         //Virusett kommer nu att aktiveras
         //
+        //Nollsätller alla variabler
         infectionTime = 0f; //Tiden sätts till 0
         mutationLevel = 1f;
         currentResistance = 0f;//nollställer 
@@ -174,19 +195,10 @@ public abstract class VirusHandlingScript : MonoBehaviour
 
         Debug.Log($"{nameOfVirus} Infection started");
 
+        //Triggrar eventet, alla stages vet nu att virust är aktiverat
+        onActivatedVirus?.Invoke();
+
     }
-
-
-
-
-
-
-
-
-
-
-
-
     //Skapar ett enum för virusets olika faser
     //Fasen kommer avgöra hur spelaren påverkas
     public enum VirusStages
@@ -255,13 +267,19 @@ public abstract class VirusHandlingScript : MonoBehaviour
 
     protected virtual void OnDisable()
     {
+        //Triggrar virus removed-eventet
+        //Triggrar föra tt siglnalera att viruset nu är borta
+        OnRemovedVIrus?.Invoke();
         //rensar alla eventdw nöär viruset tas bort från spelaren
+        //aVREGISTERAR hälso
         if (health != null)
         {
             health.OnAdditionalWound -= ControllWoundInfection;
             health.OnStateChange -= ControllHealthState;
 
         }
+
+        Debug.Log($"THe {nameOfVirus} virus has been removed from the player");
     }
 
     //En metod som väljer fas baserat på den tid som gått
@@ -279,18 +297,41 @@ public abstract class VirusHandlingScript : MonoBehaviour
         else
             newStage = VirusStages.Terminal;
 
-        //vid ändring av fas så triggras eventet och debugg
-        if(newStage != curretStage)
+        //Triggrar här stage-event 
+        if (newStage != curretStage)
         {
+
             curretStage = newStage;
             OnStageChange?.Invoke(curretStage);
 
-            Debug.Log($" The {nameOfVirus} virus stage changed to {curretStage}, It's mutation level is at {mutationLevel}, Player resistane at {currentResistance}.");
+            //Triggrar rätt event baseart på stag, newstage
+            switch (newStage)
+            {
 
-                
+                case VirusStages.Active:
+                    //Viruset är aktivt. På börjar applicering
+                    onActivatedVirus?.Invoke();
+                    Debug.Log($"{nameOfVirus} the virus has been activated");
+                    break;
+
+                case VirusStages.Critical:
+                    //VIrust är nu i ett kritiskt tilsltånd
+                    OnCriticalVirus?.Invoke();
+                    Debug.Log($"{nameOfVirus} is now craitical");
+                    break;
+
+                case VirusStages.Terminal:
+                    //VIrust är nu i ett terminalt tilstånd
+                    OnTerminalVirus?.Invoke();
+                    Debug.Log($"{nameOfVirus} is now terminal");
+                    break;
+            }
+            Debug.Log($"{nameOfVirus} : Stage {curretStage}, Mutation: {mutationLevel}, Restiance: {currentResistance}");
+
         }
 
     }
+
     //
     //
     private void ApplyBaseSymt()
@@ -357,6 +398,9 @@ public abstract class VirusHandlingScript : MonoBehaviour
             float increasedResistance = immunmAcumalationPM / 60f; //varje frame
             currentResistance = Mathf.Clamp01(currentResistance + increasedResistance);
 
+            //Triggrar resitance event 
+            OnChangedResistance?.Invoke(currentResistance);
+
             //kontroll , kollar om resitansen har nått en ny nivå
             Immunity newImmunityLevel = ChooseVirusImmy(currentResistance);
 
@@ -397,6 +441,9 @@ public abstract class VirusHandlingScript : MonoBehaviour
         {
             float mutationIncrease = mutationsPM; // ökningen blir den samma som den redan existerande variabeln
             mutationLevel += mutationIncrease;
+
+            //tRIGGRAR mUTATION-EVENTET
+            OnMutation?.Invoke(mutationLevel);
 
             //event ......
             OnMutation?.Invoke(mutationLevel);
