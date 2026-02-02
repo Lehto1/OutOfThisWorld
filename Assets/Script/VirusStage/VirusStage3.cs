@@ -27,9 +27,9 @@ public class VirusStage3 : VirusHandlingScript
     {
         base.OnEnable();
 
-        onActivatedVirus += OnStage3Activated; //lyssnare för aktiveing
+        OnCriticalVirus += OnStage3Activated; //lyssnare för aktiveing
 
-        OnCriticalVirus += OnStage3Worsened; //Lyssnare för förvärrning
+        OnTerminalVirus += OnStage3Escalated; //Lyssnare för förvärrning
 
         OnChangedMutation += OnAdjustedResistance3; //Lyssnare för restitstansörndringar
 
@@ -44,7 +44,7 @@ public class VirusStage3 : VirusHandlingScript
         //Avregisterar eventlisteners
         onActivatedVirus -= OnStage3Activated; //lyssnare för aktiveing
 
-        OnCriticalVirus -= OnStage3Worsened; //Lyssnare för förvärrning
+        OnCriticalVirus -= OnStage3Escalated; //Lyssnare för förvärrning
 
         OnChangedMutation -= OnAdjustedResistance3; //Lyssnare för resistans förändringar
 
