@@ -6,7 +6,9 @@ using UnityEngine.Experimental.GlobalIllumination;
 
 public class Movement : MonoBehaviour
 {
-    [SerializeField] int Running = 2; //Variabel som ändrar på spelarens hastighet
+    [SerializeField] private float playerWalkingSpeed = 6f; //Står för spelaren hatighet vid gång
+    [SerializeField] private float playerSprintingSpeed = 12f; // Variabel som står för speöarens hastighet vid springande
+
     [SerializeField] bool Crouching = false; //Bool som bestämmer om spelaren crouchar eller inte
 
     [Header("Stamina and Health")]
@@ -42,13 +44,22 @@ public class Movement : MonoBehaviour
     [SerializeField] private float slownessTimer = 0f;
     Rigidbody RB;
 
+    //Horizintal och vetical
+    float verticalInput = 0f;  //Står för W/S Fram och bakåt
+    float horizontalInput = 0f; //A/D stårför väster höger
+    private bool isRunningThisFrame = false;
+
+
     //Privata variabler
     private float currentSpeed = 0f; //Nuvarande hastighet
     private float velocitySpeed = 0f; // Smo0thdamping
     private bool wasRunning = false; //Booleanflag, sprang spelaren?
     private bool isCrouchSliding = false; // 
     private Vector3 directionOfSlide; //den riktning som spelaren glider åt
-    private float sprintSpeedBust = 0f;
+    private float burstTimer = 0f;
+    private float slideTimer = 0f;
+
+    
     private Vector3 previousVelocity; //Senaste 
 
 
@@ -75,24 +86,47 @@ public class Movement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+
         //Uppdaterar alla timers
-        //Uppdaterar sprint burst timer 
-        if (sprintSpeedBust > 0f)
+        HandleMovementTimers(); //Uppdatera Timers
+        HandlePlayerCrouching();
+        //Anropar funktioner
+        IsCrouching(); //Couch logik
+        RunningOrNot(); //spinting och stamina
+        MovementStuff(); // Läser bland annat input 
+        HandlePlayerInput(); // nollställer aldeles sist i kod
+    }
+     //En funtion som nollställer input varje frame
+     void HandlePlayerInput()
+    {
+        //Nollställer
+        verticalInput = 0f;
+        horizontalInput = 0f;
+    isRunningThisFrame = false;
+    }
+
+    //Nolltäller alla input-variabel för nästa frame 
+    private void ResetInput()
+    {
+        verticalInput = 0f; //nollställ
+        horizontalInput = 0f;
+        isRunningThisFrame = false;
+    }
+    //Hnaterar timers
+    void  HandleMovementTimers()
+    {
+        if(burstTimer > 0f)
         {
-            sprintSpeedBust -= speedOfCrouchSlide; //Minskar timern men varje frame
+            burstTimer -= Time.deltaTime; //Minskar timern med en varje frame
         }
 
         //uppdaterar crouch-slide timern
-        if (isCrouchSliding && durationOfCrouchSlide > 0f)
+        if (isCrouchSliding)
         {
             //Minskar
-            durationOfCrouchSlide -= Time.deltaTime;
+            slideTimer -= Time.deltaTime;
 
-            //Om slide:en är avlutad, Avlutas slide:en
-            if (durationOfCrouchSlide <= 0f)
-            {
-                isCrouchSliding = false; // slutar glida
-            }
+       
         }
 
         //Uppdaterar slowness effect
@@ -107,152 +141,8 @@ public class Movement : MonoBehaviour
                 Debug.Log("Slowness deactivated");
             }
         }
-        //Anropar funktioner
-        IsCrouching();
-        RunningOrNot();
-        MovementStuff();
 
 
-        void MovementStuff() //Includes keybinds and code for moving the player
-        {
-            //Nollställer rotation och förhindrar att spelaren flippar
-            RB.angularVelocity = new Vector3(0, 0, 0);
-            RB.linearVelocity = new Vector3(0, RB.linearVelocity.y, 0);
-
-            //Horizintal och vetical
-            float vertical = 0f;  //Står för W/S Fram och bakåt
-            float horizontal = 0f; //A/D stårför väster höger
-
-            if (Input.GetKey(KeyCode.W) && Crouching == false) // If sats for att go bakåt och framåt när man står up
-            {
-        vertical = 1f;
-            }
-            else if (Input.GetKey(KeyCode.S) && Crouching == false)
-            {
-              vertical = -1f;
-            }
-
-            if (Input.GetKey(KeyCode.W) && Crouching == true) // If sats for att go bakåt och framåt när man är crouching
-            {
-                horizontal = 1f;
-            }
-            else if (Input.GetKey(KeyCode.S) && Crouching == false)
-            {
-                horizontal = -1f;
-            }
-
-
-            if (Input.GetKey(KeyCode.A)) //If sats för att rotera din käraktär
-            {
-                RB.angularVelocity = new Vector3(0, -4, 0);
-            }
-            else if (Input.GetKey(KeyCode.D))
-            {
-                RB.angularVelocity = new Vector3(0, 4, 0);
-            }
-        }
-
-        //Hantering utav "Crouch slide"
-
-        if (isCrouchSliding)
-        {
-            //beräknar vart i slide:en som spelaren befinner sig
-            float playerSlideProgress = 1f - (durationOfCrouchSlide / 0.7f); //0.7 är max
-
-            //Minskar glidhastigheten över tid----- från speedOfCrouchslide till 0 
-            float currentSlidingSpeed = Mathf.Lerp(speedOfCrouchSlide, 0, playerSlideProgress);
-
-            //Skapar en glid-rörelse i den riktning som spelaren färdas i 
-            Vector3 velocityOfCrouchSlide = directionOfSlide * currentSlidingSpeed;
-
-            //Applicerar glid-rörelsen på spelaren
-            RB.linearVelocity = new Vector3(velocityOfCrouchSlide.x, RB.linearVelocity.y, velocityOfCrouchSlide.z);
-
-            return; //stoppar
-
-        }
-
-        //Beräknar rörelseriktningen + strafe
-        Vector3 playerMoveDirection = Vector3.zero; //börjar från noll
-
-        //OM spelaren inte crouchar loopas denna
-        if (!Crouching)
-        {
-            //Framåt och bakåt
-            playerMoveDirection += transform.forward * vertical;
-
-            //lägger till en sidåtrörelse(  en strafe)
-            if (vertical != 0f)
-            {
-                playerMoveDirection += transform.right * horizont * strafingSpeed;
-            }
-
-            //Normalisierar spelarriktningen så att rörelsen inte blir snabbare
-            playerMoveDirection = playerMoveDirection.normalized;
-        }
-        else
-        {
-
-            //OM  spelaren crouchar 
-            //Får spealren en långsammare rörelse 
-            playerMoveDirection = transform.forward * vertical * 0.5f;
-        }
-
-        //Beräknar målhastigheten
-        float playerTargetSpeed = 0f; //börjar med 0 hastighet
-
-        if (playerMoveDirection.magnitude > 0.1f)
-        {
-            //Sätter målhastigheten till Running-värdet
-            playerTargetSpeed = Running;
-
-            //Applicerar en sprint burst om burst är aktivt och spelaren springer
-            if (sprintSpeedBust > 0f && Running > 6)
-            {
-                playerTargetSpeed = Running * burstingSprintMultiplier; // 1,3x
-
-            }
-
-            //Applicerar slowness (Finns inte ännu)
-            playerTargetSpeed *= currentSpeedMult;
-        }
-        else
-        {
-            //Spelaren hastighet är noll 
-            //spelaren står still
-            playerTargetSpeed = 0f;
-        }
-
-        //Acceleration och decelerationhantering
-        float momveSmoothTime;
-
-        if (playerTargetSpeed > currentSpeed)
-        {
-            //Spelaren accelerarar
-            momveSmoothTime = accTime; // 0.x;
-        }
-        else
-        {
-            //  Spelaren Decelerar och stannar 
-            momveSmoothTime = deAccTime;
-        }
-
-        //Skapar en mjuk övergång mellan och till målhastighetn
-        currentSpeed = Mathf.SmoothDamp(currentSpeed, playerTargetSpeed, ref velocitySpeed, momveSmoothTime);
-
-        //Beräknar "Velocity" från spelarens riktning och hastighet
-        Vector3 newMoveVelocity = playerMoveDirection * currentSpeed;
-
-        //Momentum hantering och applicering
-        //Gör så att spelaren behlller lite av hastigheten vid sväng
-        Vector3 mixedVelocity = Vector3.Lerp(newMoveVelocity, previousVelocity, retentionOfMomentum);
-
-        //Sparar *previousvelocity* för nästa 
-        previousVelocity = mixedVelocity;
-
-        //Applicerar en slutgilting velocity
-        //Sättter spelarrörelsen 
-        RB.linearVelocity = new Vector3(mixedVelocity.x, RB.linearVelocity.y, mixedVelocity.z);
 
     }
             void RunningOrNot()
@@ -263,11 +153,11 @@ public class Movement : MonoBehaviour
                 {
                     if (Input.GetKey(KeyCode.LeftShift)) //Används för att ändra spelarens hastighet när de springer
                     {
-                        Running = 12;
+                        playerSprintingSpeed= 12;
                     }
                     else
                     {
-                        Running = 6;
+                        playerSprintingSpeed = playerWalkingSpeed;
                     }
 
                     return; //avlustar om det inte finns stamina
@@ -290,7 +180,7 @@ public class Movement : MonoBehaviour
             {
                 ////Startar burst-timern 
                 //Vilket gör spelaren 1.3x snabbare
-                sprintSpeedBust = durationOfBurts;
+                burstTimer = durationOfBurts;
             }
 
             //Markerar att spealren faktiskt springer
@@ -298,7 +188,7 @@ public class Movement : MonoBehaviour
                     //spelaren srpinger här
 
                     //öker dess hastighet
-                    Running = 12;
+                    playerSprintingSpeed = 12;
 
             //dRAR STAMINA
                     //räknaer sedan ut hur mycket stamina som bör dras från spelaren
@@ -316,46 +206,199 @@ public class Movement : MonoBehaviour
 
             //sätter 
                     //spelaren går , 
-                    Running = 6;
+                    playerSprintingSpeed = playerWalkingSpeed;
                 }
 
 
             }
 
     //Hanterar crouCH OCH crouch-slide
+    void HandlePlayerCrouching()
+    {
+        //OM Spelaren teycker cntrl
+        if (Input.GetKeyDown(KeyCode.LeftControl))
+        {
+
+            Crouching = !Crouching; //Växl mellan true oc false
+        }
+    }
         void IsCrouching()
         {
-        //Crouchslide, Om spelaren trycker 'ctrl', springer och inte redan crouchar
-        if(Input.GetKey(KeyCode.LeftControl) && wasRunning && !Crouching)
+            //Crouchslide, Om spelaren trycker 'ctrl', springer och inte redan crouchar
+            if (Input.GetKey(KeyCode.LeftControl) && wasRunning && !Crouching)
+            {
+                //påbörjar crouch slide
+                BeginCrouchSlide();
+                return;
+            }
+
+
+        }
+
+        //Denna funktion anropas när spelaren springer och trycjer Ctrl
+        void BeginCrouchSlide()
         {
-            //påbörjar crouch slide
-            BeginCrouchSlide();
-            return;
+            //Boolean markerar att speLAREN GLIDER
+            Crouching = true;
+            isCrouchSliding = true;
+            slideTimer = durationOfCrouchSlide; // Sätter timern till det bestämda variabelbärdet
+            directionOfSlide = transform.forward; //Gilder i spelarens frammåt riktning
+            durationOfCrouchSlide = 0.7f; //återswtäller
+            playerSprintingSpeed = speedOfCrouchSlide; // hastighet till den bestämda 
+
+            Debug.Log("The Player's crouch-slide has begun");
         }
 
-        //Om spelaren Trycker på ctrl och inte rean crouchar
-            if (Input.GetKeyDown(KeyCode.LeftControl) && Crouching == false) //Gör så att man kan stänga av och sätta på crouching
+        void MovementStuff() //Includes keybinds and code for moving the player
+        {
+            //Nollställer rotation och förhindrar att spelaren flippar
+            RB.angularVelocity = new Vector3(0, 0, 0);
+            RB.linearVelocity = new Vector3(0, RB.linearVelocity.y, 0);
+
+
+            if (Input.GetKey(KeyCode.W) && Crouching == false) // If sats for att go bakåt och framåt när man står up
             {
-                Crouching = true;
+                verticalInput = 1f;
             }
-            else if (Input.GetKeyDown(KeyCode.LeftControl) && Crouching == true)
+            else if (Input.GetKey(KeyCode.S) && Crouching == false)
             {
-                Crouching = false;
+                verticalInput = -1f;
             }
+
+            if (Input.GetKey(KeyCode.W) && Crouching == true) // If sats for att go bakåt och framåt när man är crouching
+            {
+                verticalInput = 1f;
+            }
+            else if (Input.GetKey(KeyCode.S) && Crouching == true)
+            {
+                verticalInput = -1f;
+            }
+
+
+            if (Input.GetKey(KeyCode.A)) //If sats för att rotera din käraktär
+            {
+                RB.angularVelocity = new Vector3(0, -4, 0);
+            }
+            else if (Input.GetKey(KeyCode.D))
+            {
+                RB.angularVelocity = new Vector3(0, 4, 0);
+            }
+
+
+            //Hantering utav "Crouch slide"
+
+            if (isCrouchSliding)
+            {
+
+                slideTimer -= Time.deltaTime; //Minskar timern 
+
+
+                if (slideTimer <= 0f)
+                {
+                    isCrouchSliding = false;
+                    Crouching = false;
+
+                }
+                //beräknar vart i slide:en som spelaren befinner sig
+                float playerSlideProgress = 1f - (durationOfCrouchSlide / 0.7f); //0.7 är max
+
+                //Minskar glidhastigheten över tid----- från speedOfCrouchslide till 0 
+                float currentSlidingSpeed = Mathf.Lerp(speedOfCrouchSlide, 0, playerSlideProgress);
+
+                //Skapar en glid-rörelse i den riktning som spelaren färdas i 
+                Vector3 velocityOfCrouchSlide = directionOfSlide * currentSlidingSpeed;
+
+                //Applicerar glid-rörelsen på spelaren
+                RB.linearVelocity = new Vector3(velocityOfCrouchSlide.x, RB.linearVelocity.y, velocityOfCrouchSlide.z);
+
+                return; //stoppar
+
+            }
+
+            //Beräknar rörelseriktningen + strafe
+            Vector3 playerMoveDirection = Vector3.zero; //börjar från noll
+
+            //OM spelaren inte crouchar loopas denna
+            if (!Crouching)
+            {
+                //Framåt och bakåt
+                playerMoveDirection += transform.forward * verticalInput;
+
+                //lägger till en sidåtrörelse(  en strafe)
+                if (verticalInput != 0f)
+                {
+                    playerMoveDirection += transform.right * horizontalInput * strafingSpeed;
+                }
+
+                //Normalisierar spelarriktningen så att rörelsen inte blir snabbare
+                playerMoveDirection = playerMoveDirection.normalized;
+            }
+            else
+            {
+
+                //OM  spelaren crouchar 
+                //Får spealren en långsammare rörelse 
+                playerMoveDirection = transform.forward * verticalInput * 0.5f;
+            }
+
+            //Beräknar målhastigheten
+            float playerTargetSpeed = 0f; //börjar med 0 hastighet
+
+            if (playerMoveDirection.magnitude > 0.1f)
+            {
+                //Sätter målhastigheten till Running-värdet
+                playerTargetSpeed = playerSprintingSpeed;
+
+                //Applicerar en sprint burst om burst är aktivt och spelaren springer
+                if (burstTimer > 0f && playerSprintingSpeed > 6)
+                {
+                    playerTargetSpeed = playerSprintingSpeed * burstingSprintMultiplier; // 1,3x
+
+                }
+
+                //Applicerar slowness (Finns inte ännu)
+                playerTargetSpeed *= currentSpeedMult;
+            }
+            else
+            {
+                //Spelaren hastighet är noll 
+                //spelaren står still
+                playerTargetSpeed = 0f;
+            }
+
+            //Acceleration och decelerationhantering
+            float momveSmoothTime;
+
+            if (playerTargetSpeed > currentSpeed)
+            {
+                //Spelaren accelerarar
+                momveSmoothTime = accTime; // 0.x;
+            }
+            else
+            {
+                //  Spelaren Decelerar och stannar 
+                momveSmoothTime = deAccTime;
+            }
+
+            //Skapar en mjuk övergång mellan och till målhastighetn
+            currentSpeed = Mathf.SmoothDamp(currentSpeed, playerTargetSpeed, ref velocitySpeed, momveSmoothTime);
+
+            //Beräknar "Velocity" från spelarens riktning och hastighet
+            Vector3 newMoveVelocity = playerMoveDirection * currentSpeed;
+
+            //Momentum hantering och applicering
+            //Gör så att spelaren behlller lite av hastigheten vid sväng
+            Vector3 mixedVelocity = Vector3.Lerp(newMoveVelocity, previousVelocity, retentionOfMomentum);
+
+            //Sparar *previousvelocity* för nästa 
+            previousVelocity = mixedVelocity;
+
+            //Applicerar en slutgilting velocity
+            //Sättter spelarrörelsen 
+            RB.linearVelocity = new Vector3(mixedVelocity.x, RB.linearVelocity.y, mixedVelocity.z);
+
         }
-
-    //Denna funktion anropas när spelaren springer och trycjer Ctrl
-    void BeginCrouchSlide()
-    {
-        //Boolean markerar att speLAREN GLIDER
-        Crouching = true;
-        isCrouchSliding = true; 
-        directionOfSlide = transform.forward; //Gilder i spelarens frammåt riktning
-        durationOfCrouchSlide = 0.7f; //återswtäller
-        Running = (int)speedOfCrouchSlide; // hastighet till den bestämda 
-
-        Debug.Log("The Player's crouch-slide has begun");
-    }
+    
 
     public void ApplySlowness(float multi, float duration)
     {
@@ -364,7 +407,14 @@ public class Movement : MonoBehaviour
         slownessTimer = duration;
 
     }
-}
+
+    //En hämt metod 
+    //Hämtar den nuvrande velociteten
+    public Vector3 GetCurrentVelocity ()
+    {
+        return RB.linearVelocity;
     }
+}
+ 
 
 

@@ -23,6 +23,7 @@ public class GoopBall: MonoBehaviour
 
     [SerializeField] private ParticleSystem goopParticles; //Partiklar vid träff
 
+    private float goopBounciness = 0f;
     private Rigidbody rb;
     private bool hasHitPTarget = false; 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
