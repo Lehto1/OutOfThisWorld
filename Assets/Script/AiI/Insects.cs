@@ -127,27 +127,31 @@ namespace Assets.Script
         //Skapar en startmeto för att anropa metoden ovan i 
         protected override void Start()
         {
+
             base.Start(); // Annropar förälderns start först
 
             //initialiserar Hp
             currentInsectHP = maxAIInsectHP;
-            //sätter till max
 
+            //Lägger till en säkerhetkontroll här i start
+
+            rigidbody1 = GetComponent<Rigidbody>();
+            if(rigidbody1 == null)
+            {
+            Debug.Log($"{gameObject.name} is lacking a rigidbody. The can not jump nor wiggle wihtout a rigidbody");
+                enabled = false; //Stänger av
+                return;
+            }
             //Gör det smama med rigidbody
             //hittar rigidbody 
             rigidbody1 = GetComponent<Rigidbody>(); //hämtar
 
-            //sätter på tyngdkraft
+           //sätter på tyngdkraft
             rigidbody1.useGravity = true;
-
-            wiggleTime = 0; //sätter wiggle time till 0 vid start
 
             rigidbody1.constraints = RigidbodyConstraints.FreezeRotation; // constrainar 
 
-
-
-
-
+            wiggleTime = 0; //sätter wiggle time till 0 vid start
 
             //Initialiserar attacksystemet
             InitializeAttack();
@@ -213,6 +217,8 @@ namespace Assets.Script
             //sätter NavAgentens destination 
             navAgent.SetDestination(aiPatrolWaypoints[aiPatrolWaypointsIndex].position);
 
+            navAgent.speed = Mathf.Lerp(navAgent.speed, aiMovementSPeed, Time.deltaTime * 2f);
+
             //Applicerar en pytteliten skakning 
             ApplyWiggling(0.4f);
 
@@ -235,6 +241,9 @@ namespace Assets.Script
                     //ställer om timern
                     aiPointTImer = 0f;
 
+                    //En slumpad väntetid
+                    aiTimeAtPoint += UnityEngine.Random.Range(-0.5f, 0.5f); 
+
                     //bestäm nästa waypoint
                     DecideNextWaypoint();
 
@@ -250,15 +259,20 @@ namespace Assets.Script
             // börjar röra sig mot spelarens senas kända pos
             navAgent.SetDestination(mostRecentPlayerPOS);
 
-
             //ifall insekten får syn på spelaren så..
             if (detectedPlayer && playerTransformTarget != null)
             {
                 //uppdateras destinationen till den aktuella spelarpositionen
                 navAgent.SetDestination(playerTransformTarget.position);
 
-                currentHHopTarget = CalculateAiHopTarget(); //beräknar hur den ska hoppa
-                AIPerfromJump(currentHHopTarget, jumpSTR); //Hopar
+                // Hoppar bara inom räckholl, cooif(ldown, hoppar redan inte
+                if(detectedPlayer && distanceToTarget <= jumpActivationDistance &&
+                    distanceToTarget > aiAttackRadius * 1.5f && jumpTimer <= 0f &&
+                    !isCurrentlyJumping)
+                {
+                    Vector3 hopTarget = CalculateAiHopTarget();
+                    AIPerfromJump(hopTarget, jumpSTR);
+                }
 
                 ApplyWiggling(0.4f);
 
@@ -293,8 +307,6 @@ namespace Assets.Script
                 ApplyWiggling(0.5f);
             }
 
-
-
             //En till kontroll , kOllar ifall attack cooldownen är färdig
             if (aiAttackTimer > 0f)
             {
@@ -307,8 +319,6 @@ namespace Assets.Script
                 //Kommer återgå till jakt tillsåtnden om AI:n är längre bort
                 return;
             }
-
-
 
             //Beräknar skadan med den applicerade variationen
             float rndVariation = UnityEngine.Random.Range(-aiDMGVariation, aiDMGVariation);
@@ -345,7 +355,6 @@ namespace Assets.Script
                 }
 
             }
-
             //Nollsätller cooldown för nästa Attack
             aiAttackTimer = aiAttackCoolDown;
 
@@ -362,12 +371,9 @@ namespace Assets.Script
             }
 
             //Stägner Även av all AI logic 
-            this.enabled = false;  // stänger av alltihopa
-
+            this.enabled = false;  // stänger av alltihop
             // 
             Debug.Log($"{gameObject.name} Is now Dead");
-
-
         }
 
         //Public metod för att växla AI state till det döda
@@ -400,6 +406,14 @@ namespace Assets.Script
 
             //Nollstället Hopptidtagning
             jumpTimer = jumpingCooldown;
+
+            //Slår på meshien igen
+            if(navAgent != null)
+            {
+                navAgent.Warp(transform.position); // Synkar till position? (inte testn)
+                navAgent.enabled = true; //Aktiverar återigen agenten
+                navAgent.SetDestination(mostRecentPlayerPOS); // Navmesh Agentens nya må
+            }
             
             Debug.Log($"{gameObject.name} has landed");
         }
@@ -434,9 +448,6 @@ namespace Assets.Script
                 //
                 targertPosition += missOffSet;
 
-                
-
-
             }
 
             // begärnsar så att målen itne är aldeles för långt bort 
@@ -455,19 +466,22 @@ namespace Assets.Script
         }
         private void AIPerfromJump(Vector3 targetPosition, float aiHopForce)
         {
-            //kontrolerar om spelaren redan hoppar
-            if(isCurrentlyJumping || rigidbody1 == null)
+            //kontrolerar om spelaren redan hoppar eller om några komponenter saknas
+            if(isCurrentlyJumping || rigidbody1 == null || navAgent == null)
             {
                 return;
             }
-
+          
             //sätter flaggen till true
             isCurrentlyJumping = true; //nu hoppar AI:n
 
-            //Roterar mått mål positionen så snabbt smo möjligt
+            //Stänger av navmesh under hoppet.(annars bugggar den)
+            navAgent.enabled = false;
+          
+            // räknat ut riktingen till hoppmålet
             Vector3 dirrectionToTarg = (targetPosition - transform.position).normalized;
 
-            //rotation
+            //rotation //äknar ut rotation 
             Quaternion tarrgRotation = Quaternion.LookRotation(dirrectionToTarg);
 
             transform.rotation = Quaternion.Lerp(transform.rotation, tarrgRotation, insectTurning * Time.deltaTime);
@@ -480,7 +494,7 @@ namespace Assets.Script
             hopDirection.Normalize();
 
             //Applicera Ai:s hoppkraft
-            Vector3 hopVelocity = hopDirection * jumpSTR + Vector3.up * jumpHight;
+            Vector3 hopVelocity = hopDirection * aiHopForce + Vector3.up * jumpHight;
 
             rigidbody1.linearVelocity = hopVelocity;
 
@@ -488,7 +502,7 @@ namespace Assets.Script
             float landingTIme = Mathf.Sqrt(2f * jumpHight /  Physics.gravity.magnitude);
 
             // aNROPAR landning
-            Invoke("CompletInsectHop", landingTIme + 0.051f);
+            Invoke(nameof(CompletInsectHop), landingTIme + 0.051f);
         }
 
         //Hjälmp metod för den ovan
@@ -505,6 +519,10 @@ namespace Assets.Script
 
             //beräknar en offset att vibrera med
 
+            /////////////////////
+            if (Mathf.Abs(rigidbody1.linearVelocity.y) > 0.1f) return; // Set till så att "skakning" bara sker på marken
+            Vector3 aiInsectBaseVelocity = rigidbody1.linearVelocity;
+
             //använder en sinusvåg längs X axeln
             float xWiggle = Mathf.Sin(wiggleTime * Mathf.PI * 2f) * insectWiggle * wiggleIntesity;
 
@@ -517,7 +535,8 @@ namespace Assets.Script
             //Applicerar
             if (rigidbody1.linearVelocity.y <= 0.1f)
             {
-                rigidbody1.linearVelocity = wiggleVelocity;
+                rigidbody1.linearVelocity = aiInsectBaseVelocity + wiggleVelocity;
+
             }
 
         }
