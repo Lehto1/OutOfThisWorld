@@ -98,9 +98,9 @@ public class VirusStage2 : VirusHandlingScript
     private void OnScaledMutation(float mutationLevel)
     {
         //Ju högre desto mer slowness
-        float virusScaledSloewness = slownessFactor. (mutationLevel * 0.05f);
+    //    float virusScaledSloewness = slownessFactor. (mutationLevel * 0.05f);
 
-        Debug.Log($"Stage 2] Scaled mutation, Slowness {virusScaledSloewness} , Mutation {mutationLevel}");
+     //   Debug.Log($"Stage 2] Scaled mutation, Slowness {virusScaledSloewness} , Mutation {mutationLevel}");
 
     }
 
