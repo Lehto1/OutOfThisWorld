@@ -218,6 +218,8 @@ namespace Assets.Script
         }
         protected override void ExecutePatrol()
         {
+            if (!navAgent || !navAgent.enabled || !navAgent.isOnNavMesh) { return; }
+
             //sätter NavAgentens destination 
             navAgent.SetDestination(aiPatrolWaypoints[aiPatrolWaypointsIndex].position);
 
@@ -260,7 +262,8 @@ namespace Assets.Script
 
         protected override void ExecuteChase()
         {
-            if (!navAgent || !navAgent.enabled) return;
+            if (!navAgent || !navAgent.enabled || !navAgent.isOnNavMesh) { return; }
+
 
             // börjar röra sig mot spelarens senas kända pos
             navAgent.SetDestination(mostRecentPlayerPOS);
@@ -403,24 +406,29 @@ namespace Assets.Script
                 return;
             }
             //Väntar på/tills ai:n är på marken
-            if (rigidbody1.linearVelocity.y > -0.5f && IsGroundedAI()) //Anropar metoded IsGRoundedAI
+            //y vel och nära marken
+
+            if (rigidbody1.linearVelocity.y <= -0.5f == false && IsGroundedAI()) //Anropar metoded IsGRoundedAI 
+                
             {
                 //Bromsar mjukt
                 Vector3 velocity = rigidbody1.linearVelocity;
-                rigidbody1.linearVelocity = new Vector3(velocity.x * 0.5f, 0f, velocity.z * 0.5f);
+                rigidbody1.linearVelocity = new Vector3(velocity.x * 0.6f, 0f, velocity.z * 0.6f);
 
                 //indikerar med en boolean-flag att ai:n inte hoppar just nu
                 isCurrentlyJumping = false;
                 jumpTimer = jumpingCooldown; // begränsar hu ofta ai:n kommer kunna hoppa
 
                 //Fördröjer enable
-                StartCoroutine(EnableNavAgent(0.2f));
+                StartCoroutine(EnableNavAgent(0.15f));
+
+                return; //Slutför 
             }
             else
             {
                 //Förs//öker på nytt 
                 //om 0.1s
-                Invoke(nameof(CompletInsectHop), 0.1f);
+                Invoke(nameof(CompletInsectHop), 0.08f);
             
             }
 
@@ -513,7 +521,7 @@ namespace Assets.Script
             float totalAILandTime = Mathf.Max(horizTime, verticalTime) * 1.1f; // buffert
 
             // aNROPAR landning
-            Invoke(nameof(CompletInsectHop), totalAILandTime);
+          //  Invoke(nameof(CompletInsectHop), totalAILandTime);
         }
 
         //Om
@@ -527,16 +535,58 @@ namespace Assets.Script
         private System.Collections.IEnumerator EnableNavAgent(float enableDelay)
         {
             yield return new WaitForSeconds(enableDelay);
+
             //Om navagent finns
-            if (navAgent != null) {
-                    navAgent.Warp(transform.position); // Synkar till position? (inte testn)
-                    navAgent.enabled = true; //Aktiverar återigen agenten
-                    navAgent.SetDestination(mostRecentPlayerPOS); // Navmesh Agentens nya må
+            if (navAgent != null)
+            {
+
+                //Warpar till den exapta transfrom.position 
+                bool successfullWarp = navAgent.Warp(transform.position);
+
+                //Ifall "Warpen" lyckas, loopar koden det nedan
+                if (successfullWarp)
+                {
+
+                    Debug.LogWarning($"{gameObject.name} Warp fialed,. {transform.position}");
+
+                    //Försöker ta en sample utav den bämsta lämpliga positione
+                    UnityEngine.AI.NavMeshHit aiHit;
+                    if (UnityEngine.AI.NavMesh.SamplePosition(transform.position, out aiHit, 3.0f, UnityEngine.AI.NavMesh.AllAreas))
+                    {
+                        navAgent.Warp(aiHit.position); //Warp til hit pos
+                        transform.position = aiHit.position; //FLYTTAR TRANSFORM    
+
+                    }
+                    else
+                    {
+                        Debug.LogError($"{gameObject.name} Nav mesh could not be found post leap");
+                        yield break;
+
+                    }
+
                 }
 
-                Debug.Log($"{gameObject.name} has landed");
+                //Aktiverar agenten
+                navAgent.enabled = true;
+
+                //Uppdaterar måle till den senaste "player-pos"
+                if (playerTransformTarget != null)
+                {
+                    mostRecentPlayerPOS = playerTransformTarget.position; //Uppdaterar 
+
+                    navAgent.SetDestination(mostRecentPlayerPOS);
+                }
+                else
+                {
+                    //Använder den senast könda  positionen
+                    navAgent.SetDestination(mostRecentPlayerPOS); // Använder 
+                }
+
+                Debug.Log($"{gameObject.name} has landed and synceed NavAgent, New destination: {mostRecentPlayerPOS}");
 
             }
+
+        }
 
 
 
@@ -573,6 +623,18 @@ namespace Assets.Script
             }
 
         }
+
+        //Uppdaterar alltid mostRecentpLAYERPOS  i varje frame unde chase 
+        public override void Update()
+        {
+            base.Update();
+
+
+            if (currentAIState == AiState.Chase && playerTransformTarget != null)
+            {
+                mostRecentPlayerPOS = playerTransformTarget.position;
+            }
+        }
     }
 
-}
+    }

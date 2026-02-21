@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Threading;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.EventSystems;
@@ -229,7 +230,7 @@ public abstract class AIPathfinding : MonoBehaviour
 
 
     // Update is called once per frame
-    void Update()
+  public virtual void Update()
     {
         //Hoppar över update om AI:n är död
         if (currentAIState == AiState.Dead) return;
@@ -477,17 +478,23 @@ protected virtual void UpdatePointWaitTimer()
             return; // de finns inga
            
         }
+
+        if (!navAgent || !navAgent.enabled || !navAgent.isOnNavMesh) { return; }
+
         navAgent.SetDestination(aiPatrolWaypoints[aiPatrolWaypointsIndex].position); // Nav 
     }
 
     //navAgent börjar röra sig mor spelaren 
     protected virtual void MoveTowardsPlayer()
     {
-        if (playerTransformTarget != null)
-        {
-            navAgent.SetDestination(playerTransformTarget.position); // sätter 
 
+        if (playerTransformTarget == null)
+        {
+            return;
         }
+
+        if (!navAgent || !navAgent.enabled || !navAgent.isOnNavMesh) { return; }
+        navAgent.SetDestination(playerTransformTarget.position); // sätter 
 
     }
     /// <summary>
@@ -627,6 +634,10 @@ protected virtual void UpdatePointWaitTimer()
             return;
 
 
+        }
+        if (!navAgent.isOnNavMesh)
+        {
+            return;
         }
 
         //kontrollerar om vägen har beräknats utav navAgent AI:N
