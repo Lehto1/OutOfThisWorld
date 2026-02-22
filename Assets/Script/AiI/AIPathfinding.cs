@@ -705,7 +705,7 @@ protected virtual void UpdatePointWaitTimer()
 
             } else // OM INGEN 
             {
-                UnityEngine.Debug.Log($"{gameObject.name} random U-turn");
+              //  UnityEngine.Debug.Log($"{gameObject.name} random U-turn");
 
                 Vector3 rndDirection = Random.insideUnitSphere; //genererar en slumpad riktning
                 rndDirection.y = 0; //säter y till 0 

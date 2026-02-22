@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -262,6 +263,11 @@ namespace Assets.Script
 
         protected override void ExecuteChase()
         {
+            //Kollar attackavstånd 
+            if(distanceToTarget <= aiAttackRadius)
+            {
+                ChangeState(AiState.Attack);
+            }
             if (!navAgent || !navAgent.enabled || !navAgent.isOnNavMesh) { return; }
 
 
@@ -275,7 +281,7 @@ namespace Assets.Script
                 navAgent.SetDestination(playerTransformTarget.position);
 
                 // Hoppar bara inom räckholl, cooif(ldown, hoppar redan inte
-                if(detectedPlayer && distanceToTarget <= jumpActivationDistance &&
+                if(distanceToTarget <= jumpActivationDistance &&
                     distanceToTarget > aiAttackRadius * 1.5f && jumpTimer <= 0f &&
                     !isCurrentlyJumping)
                 {
@@ -304,53 +310,48 @@ namespace Assets.Script
 
             //Dess navAgent måste vara på
             if (!navAgent || !navAgent.enabled) return;
-            //Gör en säkerhetkontroll 
-            //kollar om det finns ett hälsosystem
-            if (playerHealth == null)
+            
+            //Gör yttligare  kontroll
+            if(distanceToTarget > aiAttackRadius * 2f)
             {
-                Debug.LogError($" {gameObject.name} Playerhealth is null,");
-                return; // abryter då hälskoden inte finns
-            }
-
-            // ifall Insekten får hoppa, hoppar den
-            if (jumpTimer <= 0f )
-            {
-                //hoppar
-                AIPerfromJump(playerTransformTarget.position, jumpSTR * 1.2f);
-
-                ApplyWiggling(0.5f);
-            }
-
-            //En till kontroll , kOllar ifall attack cooldownen är färdig
-            if (aiAttackTimer > 0f)
-            {
-                return; // cooldownen pågår forfarande, väntar ....
-            }
-
-            //Tredje kontroll, Kollar om spelaren är inom attackeringsradien
-            if (distanceToTarget > aiAttackRadius)
-            {
-                //Kommer återgå till jakt tillsåtnden om AI:n är längre bort
+                ChangeState(AiState.Chase);
                 return;
             }
 
-            //Beräknar skadan med den applicerade variationen
-            float rndVariation = UnityEngine.Random.Range(-aiDMGVariation, aiDMGVariation);
-            float finalDMG = aiDMG + rndVariation; // den totala DMG
+            //Ai: kommer hoppa mot spelaren om dens cooldown är klar
+            //navAgent finns
+            //navAgent är påslagen
 
-            //Minimi 1 skada
-            finalDMG = Mathf.Max(finalDMG, minimumDMGperAttack);
-
-            //Applicerar skadan på spelaren 
-            playerHealth.ApplyDMG(finalDMG);
-
-            Debug.Log($" {gameObject.name} Attacking with {finalDMG} DMG, Player HP {playerHealth.CurrentHP}/{playerHealth.MaxHP}");
-
-            //Här kommer AI:n försöka inficera sår givet att attacken var stark nog 
-            if (finalDMG >= 5f && UnityEngine.Random.value < infectionChance)
+            if (jumpTimer <= 0f && navAgent != null && navAgent.enabled)
             {
-                //
-                if (playerVirusHandling != null)
+
+                AIPerfromJump(playerTransformTarget.position, jumpSTR * 1.2f);
+
+                ApplyWiggling(0.5f);
+                return;
+
+            }
+
+            //Tredje kontroll, Kollar om spelaren är inom attackeringsradien
+            // kOllar ifall attack cooldownen är färdig, och i så fall får AI:n attackera
+            if (distanceToTarget <= aiAttackRadius && aiAttackTimer <= 0f)
+            {
+                //Beräknar skadan med den applicerade variationen
+                float rndVariation = UnityEngine.Random.Range(-aiDMGVariation, aiDMGVariation);
+                float finalDMG = aiDMG; // den totala DMG
+
+
+                //Minimi 1 skada
+                finalDMG = Mathf.Max(finalDMG + rndVariation, minimumDMGperAttack);
+
+                //applicerar den slutgultiga skadan på spelaren 
+                //Applicerar skadan på spelaren 
+                playerHealth.ApplyDMG(finalDMG);
+
+                Debug.Log($" {gameObject.name} Attacking with {finalDMG} DMG, Player HP {playerHealth.CurrentHP}/{playerHealth.MaxHP}");
+
+                //Här kommer AI:n försöka inficera sår givet att attacken var stark nog 
+                if (finalDMG >= 5f && UnityEngine.Random.value < infectionChance)
                 {
                     //Hämtar listan övar alla sår
                     List<Wound> allWounds = playerHealth.GetWounds();
@@ -358,22 +359,18 @@ namespace Assets.Script
                     if (allWounds != null && allWounds.Count > 0)
                     {
                         //Infektera det senaste såret 
-                        Wound mostRecentWound = allWounds[allWounds.Count - 1];
-                        mostRecentWound.isInfected = true;
+                        allWounds[allWounds.Count - 1].isInfected = true;
 
-                        Debug.Log($"Virus infection started {gameObject.name} infected ID {mostRecentWound.id}");
+                        // Debug.Log($"Virus infection started {gameObject.name} infected ID {mostRecentWound.id}");
                     }
-
-                    //
 
                 }
 
+                //Nollsätller cooldown för nästa Attack
+                aiAttackTimer = aiAttackCoolDown;
+
+                Debug.Log($"Next attack in {aiAttackCoolDown}seconds");
             }
-            //Nollsätller cooldown för nästa Attack
-            aiAttackTimer = aiAttackCoolDown;
-
-            Debug.Log($"Next attack in {aiAttackCoolDown}seconds");
-
         }
         protected override void ExecuteDeath()
         {
@@ -584,6 +581,25 @@ namespace Assets.Script
 
                //´Ger NavAGENTEN en extra frame att stabilizera sig sjlv innan parent klassen skickar nya destinationer
                yield return null;
+
+            //En debugg som bekrfäftar att agentenv erkligen är på NavMesh:en
+            Debug.Log($"Landing : nvavAgent now enabled = {navAgent.enabled}, on navMesh : {navAgent.isOnNavMesh}");
+
+            if(!navAgent.isOnNavMesh)
+            {
+                //försker då omplacera agenten
+                UnityEngine.AI.NavMeshHit navEmergencyHit;
+
+                if (UnityEngine.AI.NavMesh.SamplePosition(transform.position, out navEmergencyHit, 5.0f, UnityEngine.AI.NavMesh.AllAreas))
+                {
+                    Debug.Log($"Landing: Emergency rePos to {navEmergencyHit.position}");
+
+                    //Sätter transform till den nya positionen
+                    transform.position = navEmergencyHit.position;
+
+                    navAgent.Warp(navEmergencyHit.position);
+                }
+            }
                 //Fryser rigidbody rotation och position
                 // ger nav aget fullständig kontroll, ingen överlappning
 
