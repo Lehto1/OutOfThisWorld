@@ -148,7 +148,7 @@ namespace Assets.Script
 
            //sätter på tyngdkraft
             rigidbody1.useGravity = true;
-
+            rigidbody1.isKinematic = true;
             rigidbody1.constraints = RigidbodyConstraints.FreezeRotation; // constrainar 
 
             wiggleTime = 0; //sätter wiggle time till 0 vid start
@@ -299,6 +299,10 @@ namespace Assets.Script
 
         protected override void ExecuteAttack()
         {
+            //Om AI:n hoppar, ska koden låta detta hopp utföras
+            if (isCurrentlyJumping) return;
+
+            //Dess navAgent måste vara på
             if (!navAgent || !navAgent.enabled) return;
             //Gör en säkerhetkontroll 
             //kollar om det finns ett hälsosystem
@@ -309,7 +313,7 @@ namespace Assets.Script
             }
 
             // ifall Insekten får hoppa, hoppar den
-            if (jumpTimer <= 0f && !isCurrentlyJumping)
+            if (jumpTimer <= 0f )
             {
                 //hoppar
                 AIPerfromJump(playerTransformTarget.position, jumpSTR * 1.2f);
@@ -416,11 +420,13 @@ namespace Assets.Script
                 //Nollställer all hastighet 
                 rigidbody1.linearVelocity = Vector3.zero;
                 rigidbody1.angularVelocity = Vector3.zero;
+                rigidbody1.isKinematic = true; // åter ger kntrollen
                 //indikerar med en boolean-flag att ai:n inte hoppar just nu
                 isCurrentlyJumping = false;
                 jumpTimer = jumpingCooldown; // begränsar hu ofta ai:n kommer kunna hoppa
 
-                //Fördröjer enable
+                //'isperformingleap' forsätter vara true  till corountinen nedan 'EnableNavAgent' är klar
+                 //Fördröjer enable
                 StartCoroutine(EnableNavAgent(0.15f));
             }
             else
@@ -490,6 +496,9 @@ namespace Assets.Script
             //sätter flaggen till true
             isCurrentlyJumping = true; //nu hoppar AI:n
 
+            //Säger även åter föräldern att pausa
+            isChildPerformingLeap = true;
+
             //Stänger av navmesh under hoppet.(annars bugggar den)
             navAgent.enabled = false;
 
@@ -543,8 +552,7 @@ namespace Assets.Script
             yield return new WaitForSeconds(enableDelay);
 
             //Om navagent finns
-            if (navAgent != null)
-            {
+            if (navAgent == null) { isChildPerformingLeap = false; yield break; }
 
                 //Warpar till den exapta transfrom.position 
                 bool successfullWarp = navAgent.Warp(transform.position);
@@ -552,20 +560,19 @@ namespace Assets.Script
                 //Ifall "Warpen" lyckas, loopar koden det nedan
                 if (!successfullWarp)
                 {
-
-                    Debug.LogWarning($"{gameObject.name} Warp fialed,. {transform.position}");
-
-                    //Försöker ta en sample utav den bämsta lämpliga positione
-                    UnityEngine.AI.NavMeshHit aiHit;
+                  Debug.LogWarning($"{gameObject.name} Warp fialed,. {transform.position}");
+                  //Försöker ta en sample utav den bämsta lämpliga positione
+                  UnityEngine.AI.NavMeshHit aiHit;
                     if (UnityEngine.AI.NavMesh.SamplePosition(transform.position, out aiHit, 3.0f, UnityEngine.AI.NavMesh.AllAreas))
                     {
-                        navAgent.Warp(aiHit.position); //Warp til hit pos
-                        transform.position = aiHit.position; //FLYTTAR TRANSFORM    
-
+                    transform.position = aiHit.position; //FLYTTAR TRANSFORM 
+                    navAgent.Warp(aiHit.position); //Warp til hit pos
+                      
                     }
                     else
                     {
                         Debug.LogError($"{gameObject.name} Nav mesh could not be found post leap");
+                    isChildPerformingLeap = false; //bollställer alltid vid ett fel
                         yield break;
 
                     }
@@ -575,31 +582,22 @@ namespace Assets.Script
                 //Aktiverar agenten
                 navAgent.enabled = true;
 
+               //´Ger NavAGENTEN en extra frame att stabilizera sig sjlv innan parent klassen skickar nya destinationer
+               yield return null;
                 //Fryser rigidbody rotation och position
                 // ger nav aget fullständig kontroll, ingen överlappning
-                rigidbody1.constraints = RigidbodyConstraints.FreezeRotation;
-                rigidbody1.linearVelocity = Vector3.zero; // sökerhet
 
+            navAgent.SetDestination(mostRecentPlayerPOS);
 
-
-                //Uppdaterar måle till den senaste "player-pos"
-                if (playerTransformTarget != null)
-                {
-                    mostRecentPlayerPOS = playerTransformTarget.position; //Uppdaterar 
-
-                    navAgent.SetDestination(mostRecentPlayerPOS);
-                }
-                else
-                {
-                    //Använder den senast könda  positionen
-                    navAgent.SetDestination(mostRecentPlayerPOS); // Använder 
-                }
-
+            //öp
+            isChildPerformingLeap = false;
+          
+           
                 Debug.Log($"{gameObject.name} has landed and synceed NavAgent, New destination: {mostRecentPlayerPOS}");
 
             }
 
-        }
+        
 
 
 
@@ -637,17 +635,7 @@ namespace Assets.Script
 
         }
 
-        //Uppdaterar alltid mostRecentpLAYERPOS  i varje frame unde chase 
-        public override void Update()
-        {
-            base.Update();
-
-
-            if (currentAIState == AiState.Chase && playerTransformTarget != null)
-            {
-                mostRecentPlayerPOS = playerTransformTarget.position;
-            }
-        }
+    
     }
 
     }

@@ -104,9 +104,13 @@ public abstract class AIPathfinding : MonoBehaviour
     //eN TRACKER FÖR hur länge Ai:n har väntat vid en viss checkpoint
     [SerializeField] protected float aiPointTImer;
 
+    //En flagga som barnklassen sätter till true under hopp och landing
+    //När denna Boolean sätt till true kommer denna kod (fad) att pausa all motverkande logik
+    protected bool isChildPerformingLeap = false;
+
 
     //Lämmanr tomt för nu, Fyller i senare
-    public void Awake()
+    public virtual void Awake()
     {
         //Hämtar navmesh-agenten
         NavMeshInit();
@@ -239,7 +243,7 @@ public abstract class AIPathfinding : MonoBehaviour
         //alla timers
         UpdateTimer();
 
-
+        BaseTrackPlayerPosition(); //färsk pos
 
         //Beräknar avstånd mellan Ai och spelare
         CheckDistToPlayer();
@@ -295,6 +299,10 @@ protected virtual void UpdatePointWaitTimer()
     //Kollar om det går att hitta spelaren 
     protected virtual void LookForPlayer()
     {
+        //Under hoppet ska detektionslogiken även den frysas
+        //Koden vet redan vart spelaren är någonstans
+        if (isChildPerformingLeap) return;
+
         //Kommer retunera ifall spelaren inte är korrekt kopplad till koden
         if (playerTransformTarget == null) return;
 
@@ -343,6 +351,16 @@ protected virtual void UpdatePointWaitTimer()
         }
     }
 
+    //Metod som ansvarar för att hålla 'mostrecentPlayerPOS' updaterad
+    protected virtual void BaseTrackPlayerPosition()
+    {
+        //Uppdaterar positionen vid könde spelare
+        //NavAgent aktiveras efter hopp
+        if(playerTransformTarget != null && detectedPlayer)
+        {
+            mostRecentPlayerPOS = playerTransformTarget.position;
+        }
+    }
     //beräknar avståndet mellan spelare och och AI:n
 
     //Tar reda på avstånde mellan Ai och spelare
@@ -623,6 +641,10 @@ protected virtual void UpdatePointWaitTimer()
   
     protected virtual void HandleWallObstuction()
     {
+
+        //Om ett barn alrig kör vägglogiken
+        if (isChildPerformingLeap) return; 
+
         //kollar om en Agent finns
         if(navAgent == null)
         {
