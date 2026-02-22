@@ -80,7 +80,7 @@ public class HealthScript : MonoBehaviour
     //Vid normal
     [SerializeField] private float staminaMultiplierWhileHealthy = 1f;
 
-    [SerializeField] private float staminaMultiplierWhileInjured= 0.85f;
+    [SerializeField] private float staminaMultiplierWhileInjured = 0.85f;
 
     [SerializeField] private float staminaMultiplierWhileCritical = 0.65f;
 
@@ -95,7 +95,7 @@ public class HealthScript : MonoBehaviour
     [SerializeField] private float dMGMultiplierDying = 1.4f;
 
 
-    [SerializeField] private HealthState state = HealthState.Healthy; 
+    [SerializeField] private HealthState state = HealthState.Healthy;
 
     ///fixxar vid senare tillf'lle
 
@@ -124,9 +124,17 @@ public class HealthScript : MonoBehaviour
 
     public event Action<float> OnStaminaChnge;
 
+    //triggras första gågnen efter ett sår infekteras, 
+    //Viruset lyssnar på denna för aktivering
+    public event Action OnFirstInfectedWound;
+
+    //hÅLLER KOLL PÅ OM VIRUSET REDAN HAR AKTIVERATS VIA ETT SÅT
+    private bool virusHasTriggered = false;
+
+
     //Skappar getters
-  //för det nuvarande hälsotillståndet
-  public HealthState State => state;
+    //för det nuvarande hälsotillståndet
+    public HealthState State => state;
 
     //getter för currentHhealth
     public float CurrentHP => currentHealth;
@@ -146,16 +154,16 @@ public class HealthScript : MonoBehaviour
 
     //retunerar Stamina procent
     public float StaminaPercent => currentStamina / maxinumStamina;
-        
+
     void Start()
     {
         //sätter energi och häls värdena till maximalt vid kodens start
         currentHealth = maxHealth; //sätts till max
         currentStamina = maxinumStamina; //sätt till max
 
-        UnityEngine.Debug.Log($"Player init, Health level:{currentHealth/maxHealth}, Stamina:{currentStamina/maxinumStamina}");//säkerhet
+        UnityEngine.Debug.Log($"Player init, Health level:{currentHealth / maxHealth}, Stamina:{currentStamina / maxinumStamina}");//säkerhet
     }
-  
+
 
     // Update is called once per frame
     void Update()
@@ -175,7 +183,7 @@ public class HealthScript : MonoBehaviour
 
         UpdateUI(); //uPPDATERAR klasens kopplade UI komponenter
 
-         
+
     }
 
     //En metod som applicerar skada på spelarens hälsa, 
@@ -191,8 +199,8 @@ public class HealthScript : MonoBehaviour
             return;
 
         }
-         //minskar spelarhälsan
-         currentHealth -= dMG;
+        //minskar spelarhälsan
+        currentHealth -= dMG;
         currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth); // 
 
         //Triggrar DMG eventet
@@ -203,7 +211,7 @@ public class HealthScript : MonoBehaviour
         //ifall dmg värdet som spelaren tog 
         //är så pass tor så att den överstiger trhesholden 
         //skappas ett sår
-        if(dMG > woundThresh)
+        if (dMG > woundThresh)
         {
             //kallar metod som skapar skador  utifrån DMG värdet
             CreateWound(dMG);
@@ -219,7 +227,7 @@ public class HealthScript : MonoBehaviour
     public void HealPlayer(float healingAMount)
     {
         //valliderar 
-        if( healingAMount <= 0)
+        if (healingAMount <= 0)
         {
             UnityEngine.Debug.LogWarning("HealingAmount has to be above 0");
             return;
@@ -230,8 +238,8 @@ public class HealthScript : MonoBehaviour
 
         UnityEngine.Debug.Log($"Player healed {healingAMount} HP , Current health : {currentHealth / maxHealth}");
 
-               //Uppdaterar här spelarens hälso tillstånd,
-    UpdatePlayerHealthState();
+        //Uppdaterar här spelarens hälso tillstånd,
+        UpdatePlayerHealthState();
 
     }
 
@@ -254,7 +262,7 @@ public class HealthScript : MonoBehaviour
         else if (wound == null)
         {
             //hittade inget passande sår 
-            
+
             UnityEngine.Debug.LogWarning($"{woundID} ID could not be found");
         }
         else
@@ -264,69 +272,69 @@ public class HealthScript : MonoBehaviour
         }
 
     }
-            //Metod för att använda stamina, vilket minskar spelaren ´s enegri
-            //Denna mettod kallas när spealren gör något som förbrukar energi 
-            public void UseStamina(float stmAmount)
-            {
-                //Det går ite för denna metod att använda 0 stamina,
-                //dätmed so kommer metod returna ifall stmAmount är 0
+    //Metod för att använda stamina, vilket minskar spelaren ´s enegri
+    //Denna mettod kallas när spealren gör något som förbrukar energi 
+    public void UseStamina(float stmAmount)
+    {
+        //Det går ite för denna metod att använda 0 stamina,
+        //dätmed so kommer metod returna ifall stmAmount är 0
 
         //Lägger till en debug för 
         UnityEngine.Debug.Log($"UseStamina has been called,  {stmAmount}, curren stamina before  {currentStamina}");
 
-                if (stmAmount <= 0)
-                {
-                    UnityEngine.Debug.LogWarning("Stamina requirement not ");
-                    return;
+        if (stmAmount <= 0)
+        {
+            UnityEngine.Debug.LogWarning("Stamina requirement not ");
+            return;
 
-                }
+        }
 
-                //minskar stamina
-                currentStamina -= stmAmount;
+        //minskar stamina
+        currentStamina -= stmAmount;
 
-                //jag säkkerställer h'r att stamina värdet aldrig går utanför rimliga värde. 
-                //går inte över max, går inte till minus
-                currentStamina = Mathf.Clamp(currentStamina, 0, maxinumStamina);
+        //jag säkkerställer h'r att stamina värdet aldrig går utanför rimliga värde. 
+        //går inte över max, går inte till minus
+        currentStamina = Mathf.Clamp(currentStamina, 0, maxinumStamina);
 
         // Sätter en regen färdröjning på 0.8 sekunder
         staminaRegenDelay = 0.8f;
 
-                // triggrar event onStaminachanged
-                OnStaminaChnge?.Invoke(currentStamina);
+        // triggrar event onStaminachanged
+        OnStaminaChnge?.Invoke(currentStamina);
 
-                UnityEngine.Debug.Log($"Stamina used : {stmAmount}, New stamina amout : {currentStamina}/{maxinumStamina}");
+        UnityEngine.Debug.Log($"Stamina used : {stmAmount}, New stamina amout : {currentStamina}/{maxinumStamina}");
 
-            }
+    }
 
     //Denna metod kallas från update varje frame.
     //Tillåter en ölångsam återhämtning av stamina
     //StaminaRegen styr hastighetn
 
-  private void RegenStamina()
-            {
+    private void RegenStamina()
+    {
 
-     //   UnityEngine.Debug.Log($"Regen Stamina: {currentStamina}/{maxinumStamina}, Mult : {GetStaminaStateMulti(state)}"); //För min egena vetskap
+        //   UnityEngine.Debug.Log($"Regen Stamina: {currentStamina}/{maxinumStamina}, Mult : {GetStaminaStateMulti(state)}"); //För min egena vetskap
 
         if (currentStamina >= maxinumStamina) return; //Stoppar vid full stamina 
 
         //Väntar med regen om spelaren nyligen har använd sin stmaina 
-       //förhindrar att stamina fylls direkt efter en sprint
-       if(staminaRegenDelay > 0f)
+        //förhindrar att stamina fylls direkt efter en sprint
+        if (staminaRegenDelay > 0f)
         {
             staminaRegenDelay -= Time.deltaTime;
             return; // ingen ännu
         }
-        
-            //Hämtar den rätta multiplikatorn baserat på hälsotillstånde
-            float staminaMulti = GetStaminaStateMulti(state);
-            // ökar stmaina paserat på deltatime
-            currentStamina += staminaRegen * staminaMulti * Time.deltaTime;
-            // säkkerställer att värdet allrig överstiger max
-            currentStamina = Mathf.Clamp(currentStamina,0,maxinumStamina);
-            OnStaminaChnge?.Invoke(currentStamina);
-            
 
-         }
+        //Hämtar den rätta multiplikatorn baserat på hälsotillstånde
+        float staminaMulti = GetStaminaStateMulti(state);
+        // ökar stmaina paserat på deltatime
+        currentStamina += staminaRegen * staminaMulti * Time.deltaTime;
+        // säkkerställer att värdet allrig överstiger max
+        currentStamina = Mathf.Clamp(currentStamina, 0, maxinumStamina);
+        OnStaminaChnge?.Invoke(currentStamina);
+
+
+    }
 
     //Denna metod retunerar en stamina-multiplikator baserat på spelarens hälsotillstånd
     private float GetStaminaStateMulti(HealthState currentState)
@@ -364,11 +372,11 @@ public class HealthScript : MonoBehaviour
         return currentStamina >= requiredAmount;
     }
 
-    
+
     //En metod som ppdaterar spelarens hälsotillstånd baserat på det nuvarnade
     // Metoden använder sig utav procentebestämma n angivna i enumen för att ävgöra vilket skick som spelaren
     // //befinner sig i
-   public void  UpdatePlayerHealthState()
+    public void UpdatePlayerHealthState()
     {
         // Skapar en ny Healthstate variabel för det nya tillståndet
         HealthState newHeathState;
@@ -416,7 +424,7 @@ public class HealthScript : MonoBehaviour
 
         //Kollar om tillståndet är det samma som förr eller om spelaren har byt
         //tillstånd
-        if(newHeathState != state)
+        if (newHeathState != state)
         {
             //lagrar koden den gamla staten i en egen variabel
             HealthState previousState = state;
@@ -438,7 +446,7 @@ public class HealthScript : MonoBehaviour
     // Denna metod applicerar en lång rad olika effekter på spealren. När Hälsotillstånden ändras 
     //så kallas denna metod,(När en förändring i tillstånd upptäcks).
     //
-    private void ApplyHealthStateEffect (HealthState newState)
+    private void ApplyHealthStateEffect(HealthState newState)
     {
         //Använder switch-statemetn 
         switch (newState)
@@ -500,24 +508,24 @@ public class HealthScript : MonoBehaviour
     }
 
 
-            //Kallas när en attack gör mer skada änn tresh
-            public void CreateWound(float damage)
-            {
+    //Kallas när en attack gör mer skada änn tresh
+    public void CreateWound(float damage)
+    {
 
-                //skappaet ett nytt object av sorten wound
-                Wound newWound = new Wound(woundID++, damage);
+        //skappaet ett nytt object av sorten wound
+        Wound newWound = new Wound(woundID++, damage);
 
-                //LÄGGER TILL TILL LISTAN
-                wounds.Add(newWound);
-                //triggrar evvent
-                OnAdditionalWound?.Invoke(newWound);
+        //LÄGGER TILL TILL LISTAN
+        wounds.Add(newWound);
+        //triggrar evvent
+        OnAdditionalWound?.Invoke(newWound);
 
-                //logg
-                UnityEngine.Debug.Log($"New wound created, ID : {newWound.id}. DMG : {damage}, Tot wounds {wounds.Count}");
-            }
+        //logg
+        UnityEngine.Debug.Log($"New wound created, ID : {newWound.id}. DMG : {damage}, Tot wounds {wounds.Count}");
+    }
 
-        //retunerar lista med wound "sår" object 
-        public List<Wound> GetWounds()
+    //retunerar lista med wound "sår" object 
+    public List<Wound> GetWounds()
     {
         return wounds;
     }
@@ -559,7 +567,7 @@ public class HealthScript : MonoBehaviour
         //söker upp såred med samma ID
         Wound healThisWound = wounds.Find(w => w.id == idWound); ; //sö
 
-        if(healThisWound != null )
+        if (healThisWound != null)
         {
             //HITTAT SÅR
             //TAr bort det funna såret
@@ -567,7 +575,8 @@ public class HealthScript : MonoBehaviour
 
             UnityEngine.Debug.Log($"The wound {woundID} has healed and been removed");
 
-        } else
+        }
+        else
         {
             //hittades inte
             UnityEngine.Debug.LogWarning($"Could not match any woud to ID : {woundID}");
@@ -580,8 +589,8 @@ public class HealthScript : MonoBehaviour
         //lämnar texterna tomma för tillfället 
         HealthbarFiller();
         StaminaBarFiller();
-         //ändra färg på healthbar
-         ColorChanger();
+        //ändra färg på healthbar
+        ColorChanger();
 
         //Uppdaterar Sår och HP info i Text UI
         UpdateWoundUI();
@@ -590,9 +599,9 @@ public class HealthScript : MonoBehaviour
     //Uppdaterar SÅRSTATUS UI
     private void UpdateWoundUI()
     {
-       //uppdaterar hälsotexten
-       //
-       if(healthText != null)
+        //uppdaterar hälsotexten
+        //
+        if (healthText != null)
         {
 
             //Räknar hur många sår som är infekterade
@@ -610,8 +619,8 @@ public class HealthScript : MonoBehaviour
             healthText.text = playerWoundInfo;
         }
 
-       //Uppdaterar stamina texten
-       if(StaminaText != null)
+        //Uppdaterar stamina texten
+        if (StaminaText != null)
         {
             StaminaText.text = $"Stamina : {currentStamina}/{maxinumStamina}";
         }
@@ -623,7 +632,7 @@ public class HealthScript : MonoBehaviour
     {
         //Säkerhettskontroll 
         //om inga sår finns  hoppar kloden över hela metoden
-        if(wounds == null || wounds.Count == 0)
+        if (wounds == null || wounds.Count == 0)
         {
             return; //inga att updatera
         }
@@ -642,6 +651,13 @@ public class HealthScript : MonoBehaviour
             //Uppdaterar infektionstatus för såret
             wound.UpdateWoundInfection(Time.deltaTime);
 
+            //kollar om såret blev infekterat och om viruset inte rdan är ett ektict sådant
+            if (wound.isInfected && !virusHasTriggered)
+            {
+                virusHasTriggered = true; //detta förhindrar att 
+                OnFirstInfectedWound?.Invoke(); //sägr till virusett att vakna
+                UnityEngine.Debug.Log("First infect wound detected, now triggering virus");
+            }
             //Kontrollerar om såret är infekterat
             //om det inte är det behöver jag inte häller räkna på det
             if (!wound.isInfected) continue;
@@ -666,23 +682,23 @@ public class HealthScript : MonoBehaviour
         }
 
         //Applicerar all samlad HP+ skada på en och samma gång
-        if(totInfectionDMGThisFrame > 0f)
+        if (totInfectionDMGThisFrame > 0f)
         {
             currentHealth -= totInfectionDMGThisFrame;
             currentHealth = Mathf.Clamp(currentHealth, 0f, maxHealth);
         }
 
         //Applicerar staimna endast när det fatiskt finns infekterade skador/sår
-        if(totStaminaDrainThisFrame > 0f)
+        if (totStaminaDrainThisFrame > 0f)
         {
             currentStamina -= totStaminaDrainThisFrame;
             currentStamina = Mathf.Clamp(currentStamina, 0f, maxinumStamina);
             OnStaminaChnge?.Invoke(currentStamina);
         }
-         //Uppdaterar healthstate efter att skadorna har blivigt applicerade 
-         UpdatePlayerHealthState();
+        //Uppdaterar healthstate efter att skadorna har blivigt applicerade 
+        UpdatePlayerHealthState();
     }
-   
+
     //Uppdaterar
 
     void HealthbarFiller()
@@ -705,30 +721,32 @@ public class HealthScript : MonoBehaviour
     public void HealthStaminaPassiveDrain(float amount)
     {
         //änvendes för passiva stamina minskingar
-        if (amount <= 0f)
+        if (amount > 0f)
         {
             currentStamina -= amount;
             currentStamina = Mathf.Clamp(currentStamina, 0, maxinumStamina);
             OnStaminaChnge?.Invoke(currentStamina);
 
         }
-    //Getter kod och Gettermetoder
+        //Getter kod och Gettermetoder
 
 
-   // public List<Wound> GetWounds()
-   // {
-    //    return wounds; // rettunerar listan 
-  //  }
-}
+        // public List<Wound> GetWounds()
+        // {
+        //    return wounds; // rettunerar listan 
+        //  }
+    }
 
-//Healthstate enum 
-//alla de fyra olika tillstånden kommer att påverka spelaren på olika sätt
-public enum HealthState
-{a
-    Healthy, //omkring 100 - 70% Hp, Spelaren är vid detta stadie i en väldigt god from
-    Injured, //Omkring 70 - 40 HP spelaren är skadad men är ändå i relativt gott tilstånd
-    Critical, // 40 - 16 hp, 
-    Dying, // 14 -  1 hp
-    Death // 0% hp, Spelaren har dött
+    //Healthstate enum 
+    //alla de fyra olika tillstånden kommer att påverka spelaren på olika sätt
+    public enum HealthState
+    {
+        Healthy, //omkring 100 - 70% Hp, Spelaren är vid detta stadie i en väldigt god from
+        Injured, //Omkring 70 - 40 HP spelaren är skadad men är ändå i relativt gott tilstånd
+        Critical, // 40 - 16 hp, 
+        Dying, // 14 -  1 hp
+        Death // 0% hp, Spelaren har dött
+    }
+
 }
 

@@ -408,21 +408,20 @@ namespace Assets.Script
             //Väntar på/tills ai:n är på marken
             //y vel och nära marken
 
-            if (rigidbody1.linearVelocity.y <= -0.5f == false && IsGroundedAI()) //Anropar metoded IsGRoundedAI 
+            if (IsGroundedAI()) //Anropar metoded IsGRoundedAI 
                 
             {
-                //Bromsar mjukt
-                Vector3 velocity = rigidbody1.linearVelocity;
-                rigidbody1.linearVelocity = new Vector3(velocity.x * 0.6f, 0f, velocity.z * 0.6f);
-
+                //Avbryt alla väntande anrop av metoden
+                CancelInvoke(nameof(CompletInsectHop));
+                //Nollställer all hastighet 
+                rigidbody1.linearVelocity = Vector3.zero;
+                rigidbody1.angularVelocity = Vector3.zero;
                 //indikerar med en boolean-flag att ai:n inte hoppar just nu
                 isCurrentlyJumping = false;
                 jumpTimer = jumpingCooldown; // begränsar hu ofta ai:n kommer kunna hoppa
 
                 //Fördröjer enable
                 StartCoroutine(EnableNavAgent(0.15f));
-
-                return; //Slutför 
             }
             else
             {
@@ -493,6 +492,10 @@ namespace Assets.Script
 
             //Stänger av navmesh under hoppet.(annars bugggar den)
             navAgent.enabled = false;
+
+            //Frigör Rigidbody , kan då hoppa fritt
+            rigidbody1.constraints = RigidbodyConstraints.FreezeRotation; //Behåller  rotationslåset
+            rigidbody1.isKinematic = false; //Säkerställer fysik
           
             // räknat ut riktingen till hoppmålet
             Vector3 dirrectionToTarg = (targetPosition - transform.position).normalized;
@@ -520,14 +523,17 @@ namespace Assets.Script
             float verticalTime = Mathf.Sqrt(2f * jumpHight / Physics.gravity.magnitude);
             float totalAILandTime = Mathf.Max(horizTime, verticalTime) * 1.1f; // buffert
 
-            // aNROPAR landning
-          //  Invoke(nameof(CompletInsectHop), totalAILandTime);
+            //Avbryter alla eventuallea väntande anrop
+            CancelInvoke(nameof(CompletInsectHop));
+
+            // aNROPAR landnings hanteranen efter den bräknade lfygtiden
+           Invoke(nameof(CompletInsectHop), totalAILandTime);
         }
 
         //Om
         private bool IsGroundedAI()
         {
-            return Physics.Raycast(transform.position, Vector3.down, 0.2f);
+            return Physics.Raycast(transform.position + Vector3.up * 0.1f, Vector3.down, 0.35f);
         }
 
         //
@@ -568,6 +574,13 @@ namespace Assets.Script
 
                 //Aktiverar agenten
                 navAgent.enabled = true;
+
+                //Fryser rigidbody rotation och position
+                // ger nav aget fullständig kontroll, ingen överlappning
+                rigidbody1.constraints = RigidbodyConstraints.FreezeRotation;
+                rigidbody1.linearVelocity = Vector3.zero; // sökerhet
+
+
 
                 //Uppdaterar måle till den senaste "player-pos"
                 if (playerTransformTarget != null)

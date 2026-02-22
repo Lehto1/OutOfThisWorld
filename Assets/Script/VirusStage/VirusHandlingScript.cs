@@ -169,18 +169,21 @@ public abstract class VirusHandlingScript : MonoBehaviour
             return;
         }
 
-        //här kommer koden för at hitta spelar kontrollerna vara
-        //---------------------------------//
-
-        //Hälsa events
-        //Fixar senare när jag skaar hälsa scriptet
-        //----------------------------------//
-
-        // health.OnWoundAdded += ControllWounInfection;
-        //  health.OnSate.Changed += ControllHealthState;
+        //Infektions event innan avstängning
+        health.OnFirstInfectedWound += VirusActivationFromWound;
+        //Efter som biruset sover vid start
+        enabled = false;
 
     }
+     
+    //Den väckande metodn,
+    //Vaknar viruset när kallad
+    private void VirusActivationFromWound()
+    {
+        Debug.Log($"{nameOfVirus}: A wound has been infected, virus is not longer sleeping");
+        enabled = true; // 
 
+    }
     protected virtual void OnEnable()
     {
         //Virusett kommer nu att aktiveras
@@ -199,6 +202,23 @@ public abstract class VirusHandlingScript : MonoBehaviour
         onActivatedVirus?.Invoke();
 
     }
+    protected virtual void OnDisable()
+    {
+        //Triggrar virus removed-eventet
+        //Triggrar föra tt siglnalera att viruset nu är borta
+        OnRemovedVIrus?.Invoke();
+        //rensar alla eventdw nöär viruset tas bort från spelaren
+        //aVREGISTERAR hälso
+        if (health != null)
+        {
+            health.OnAdditionalWound -= ControllWoundInfection;
+            health.OnStateChange -= ControllHealthState;
+            health.OnFirstInfectedWound -= VirusActivationFromWound;
+        }
+
+        Debug.Log($"THe {nameOfVirus} virus has been removed from the player");
+    }
+
     //Skapar ett enum för virusets olika faser
     //Fasen kommer avgöra hur spelaren påverkas
     public enum VirusStages
@@ -231,7 +251,7 @@ public abstract class VirusHandlingScript : MonoBehaviour
 
         // kontrollerar ifall spelaren är vod liv
         //slutar viruset köra
-        if (health == null || health.State == HealthState.Death)
+        if (health == null || health.State == HealthScript.HealthState.Death)
         {
             enabled = false;
             return;
@@ -265,22 +285,7 @@ public abstract class VirusHandlingScript : MonoBehaviour
         }
     }
 
-    protected virtual void OnDisable()
-    {
-        //Triggrar virus removed-eventet
-        //Triggrar föra tt siglnalera att viruset nu är borta
-        OnRemovedVIrus?.Invoke();
-        //rensar alla eventdw nöär viruset tas bort från spelaren
-        //aVREGISTERAR hälso
-        if (health != null)
-        {
-            health.OnAdditionalWound -= ControllWoundInfection;
-            health.OnStateChange -= ControllHealthState;
-
-        }
-
-        Debug.Log($"THe {nameOfVirus} virus has been removed from the player");
-    }
+   
 
     //En metod som väljer fas baserat på den tid som gått
     private void UppdateStageOfVirus()
@@ -527,10 +532,10 @@ public abstract class VirusHandlingScript : MonoBehaviour
 
     //Detta håller koll på spelarens hälsa, vid ändringar 
     //OM SPELAREN INT ELÄNGRE ÄR VID LIV SÅ KOMMER koden at stänga
-    private void ControllHealthState(HealthState newHealthState)
+    private void ControllHealthState(HealthScript.HealthState newHealthState)
     {
         //koollar ifall spealren forfarande lever
-        if(newHealthState != HealthState.Healthy)
+        if(newHealthState != HealthScript.HealthState.Healthy)
         {
             //stänger av viruset
             enabled = false;
