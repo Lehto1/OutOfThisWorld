@@ -290,7 +290,7 @@ public abstract class VirusHandlingScript : MonoBehaviour
         //ifall infektiontiden visars sig vara under latenttid, behålls viruset latent
         if (infectionTime < dormantTime)
             newStage = VirusStages.Dormant;
-        else if (infectionTime > activeTime)
+        else if (infectionTime < activeTime)
             newStage = VirusStages.Active; //om 
         else if (infectionTime < criticalTime)
             newStage = VirusStages.Critical;
@@ -361,9 +361,12 @@ public abstract class VirusHandlingScript : MonoBehaviour
             health.ApplyDMG(endDPS * Time.deltaTime);
         }
         //StaminaDrain rader nedan
-        float drainOfStamina = (curretStage == VirusStages.Critical || curretStage == VirusStages.Terminal) ? drainOfStaminaCritical : drainOfStaminaActive;
+        if (curretStage != VirusStages.Dormant)
+        {
+            float drainOfStamina = (curretStage == VirusStages.Critical || curretStage == VirusStages.Terminal) ? drainOfStaminaCritical : drainOfStaminaActive;
 
-        health.UseStamina(drainOfStamina * Time.deltaTime);
+            health.HealthStaminaPassiveDrain(drainOfStamina* Time.deltaTime);
+        }
     }
 
     private float GetDamageMultiplierForStage (VirusStages stage)

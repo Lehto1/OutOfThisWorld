@@ -544,7 +544,7 @@ namespace Assets.Script
                 bool successfullWarp = navAgent.Warp(transform.position);
 
                 //Ifall "Warpen" lyckas, loopar koden det nedan
-                if (successfullWarp)
+                if (!successfullWarp)
                 {
 
                     Debug.LogWarning($"{gameObject.name} Warp fialed,. {transform.position}");

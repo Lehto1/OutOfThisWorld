@@ -702,8 +702,6 @@ protected virtual void UpdatePointWaitTimer()
             }
         }
 
-
-
     }
 
 

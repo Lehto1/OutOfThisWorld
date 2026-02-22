@@ -47,6 +47,8 @@ public class HealthScript : MonoBehaviour
     //En varibel för hur snabbt staminanivåerna återhämtar sig själva
     [SerializeField] private float staminaRegen = 4f;
 
+    [SerializeField] private float staminaRegenDelay = 0f;
+
     [Header("Wound Creation")]
     //En variabel med det minsta värde som spelaren behöver ta i skada för att ett "sår" ska skapas
     //om mindre än detta värde tas, kommer inget wound skapas
@@ -158,10 +160,11 @@ public class HealthScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-     
+
 
         //lenar Ui:N 
-        uiLerpingSpeed = 3f * Time.deltaTime;
+        //Sätter Ui-Lerpenshastighet till  fast värde
+        uiLerpingSpeed = 3f;
         //uppdatera det återhämtande stamminavärde en varje frame
         RegenStamina();
 
@@ -268,6 +271,9 @@ public class HealthScript : MonoBehaviour
                 //Det går ite för denna metod att använda 0 stamina,
                 //dätmed so kommer metod returna ifall stmAmount är 0
 
+        //Lägger till en debug för 
+        UnityEngine.Debug.Log($"UseStamina has been called,  {stmAmount}, curren stamina before  {currentStamina}");
+
                 if (stmAmount <= 0)
                 {
                     UnityEngine.Debug.LogWarning("Stamina requirement not ");
@@ -282,6 +288,9 @@ public class HealthScript : MonoBehaviour
                 //går inte över max, går inte till minus
                 currentStamina = Mathf.Clamp(currentStamina, 0, maxinumStamina);
 
+        // Sätter en regen färdröjning på 0.8 sekunder
+        staminaRegenDelay = 0.8f;
+
                 // triggrar event onStaminachanged
                 OnStaminaChnge?.Invoke(currentStamina);
 
@@ -292,28 +301,32 @@ public class HealthScript : MonoBehaviour
     //Denna metod kallas från update varje frame.
     //Tillåter en ölångsam återhämtning av stamina
     //StaminaRegen styr hastighetn
+
   private void RegenStamina()
             {
-        ////Om stamina inte är full, så återhämtas den
-        if(currentStamina < maxinumStamina)
+
+     //   UnityEngine.Debug.Log($"Regen Stamina: {currentStamina}/{maxinumStamina}, Mult : {GetStaminaStateMulti(state)}"); //För min egena vetskap
+
+        if (currentStamina >= maxinumStamina) return; //Stoppar vid full stamina 
+
+        //Väntar med regen om spelaren nyligen har använd sin stmaina 
+       //förhindrar att stamina fylls direkt efter en sprint
+       if(staminaRegenDelay > 0f)
         {
-            //Hämtar den rätta multiplikatorn baserat på hälsotillståndet
+            staminaRegenDelay -= Time.deltaTime;
+            return; // ingen ännu
+        }
+        
+            //Hämtar den rätta multiplikatorn baserat på hälsotillstånde
             float staminaMulti = GetStaminaStateMulti(state);
             // ökar stmaina paserat på deltatime
             currentStamina += staminaRegen * staminaMulti * Time.deltaTime;
-
             // säkkerställer att värdet allrig överstiger max
             currentStamina = Mathf.Clamp(currentStamina,0,maxinumStamina);
+            OnStaminaChnge?.Invoke(currentStamina);
+            
 
-            //On
-            if(OnStaminaChnge != null) {
-
-                OnStaminaChnge.Invoke(currentStamina);
-            }
-
-        }
-
-            }
+         }
 
     //Denna metod retunerar en stamina-multiplikator baserat på spelarens hälsotillstånd
     private float GetStaminaStateMulti(HealthState currentState)
@@ -605,8 +618,22 @@ public class HealthScript : MonoBehaviour
 
     }
     //Metod som kallas varje frame och uppdaterar skador och deras infektions status
+    //LOOPAR ingenom listan och applicerar infektion
     private void UpdateWoundInfections()
     {
+        //Säkerhettskontroll 
+        //om inga sår finns  hoppar kloden över hela metoden
+        if(wounds == null || wounds.Count == 0)
+        {
+            return; //inga att updatera
+        }
+
+        //En variabel som håller koll på den totala mngden  infektionsksada denna frame
+        //Samlar all skada i en variabel
+        float totInfectionDMGThisFrame = 0f;
+
+        //Variabel som håller koll på den totala stamina dreainen denna frame 
+        float totStaminaDrainThisFrame = 0f;
 
         //Loopar först egenom varje sår i listan
         foreach (Wound wound in wounds)
@@ -616,18 +643,43 @@ public class HealthScript : MonoBehaviour
             wound.UpdateWoundInfection(Time.deltaTime);
 
             //Kontrollerar om såret är infekterat
-            if (wound.isInfected)
+            //om det inte är det behöver jag inte häller räkna på det
+            if (!wound.isInfected) continue;
+
+            //Säkerhetskontroll,  undviker 0 
+            if (wound.maxVirusLoad <= 0f)
             {
-                //Beräknar skadan från infektion
-                float infectionDamage = wound.infectionDPS * (wound.virusLoad / wound.maxVirusLoad) * Time.deltaTime;
-
-                //Applicerar skadan på spelarens hälsa
-                currentHealth -= infectionDamage;
-
-                //kONTROLERAR HÄLSAN så att den aldrig går under 0 eller över MAX
-                currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
+                continue; //Hoppr över detta sår
             }
+
+            //Beräknar hur allvarlig infektionen är från (0.0 till 1=)
+            float woundInfectionSeverity = Mathf.Clamp01(wound.virusLoad / wound.maxVirusLoad);
+
+            //Beräknar skadan från infektion baserat på dess alvarlighets grad
+            float infectionDamage = wound.infectionDPS * woundInfectionSeverity * Time.deltaTime;
+
+            //Samlar all skada i en variabel
+            totInfectionDMGThisFrame += infectionDamage;
+
+            //Beräknar staminaDrain, Ju alvariga infektion, ju mer stmaina dräneras från spealren 
+            float playerStaminaDraiFromThisWound = wound.infectionDPS * woundInfectionSeverity * 0.5f * Time.deltaTime;
         }
+
+        //Applicerar all samlad HP+ skada på en och samma gång
+        if(totInfectionDMGThisFrame > 0f)
+        {
+            currentHealth -= totInfectionDMGThisFrame;
+            currentHealth = Mathf.Clamp(currentHealth, 0f, maxHealth);
+        }
+
+        //Applicerar staimna endast när det fatiskt finns infekterade skador/sår
+        if(totStaminaDrainThisFrame > 0f)
+        {
+            currentStamina -= totStaminaDrainThisFrame;
+            currentStamina = Mathf.Clamp(currentStamina, 0f, maxinumStamina);
+            OnStaminaChnge?.Invoke(currentStamina);
+        }
+         //Uppdaterar healthstate efter att skadorna har blivigt applicerade 
          UpdatePlayerHealthState();
     }
    
@@ -648,6 +700,18 @@ public class HealthScript : MonoBehaviour
 
         healthBar.color = healthColour;
     }
+
+    //Metod som 
+    public void HealthStaminaPassiveDrain(float amount)
+    {
+        //änvendes för passiva stamina minskingar
+        if (amount <= 0f)
+        {
+            currentStamina -= amount;
+            currentStamina = Mathf.Clamp(currentStamina, 0, maxinumStamina);
+            OnStaminaChnge?.Invoke(currentStamina);
+
+        }
     //Getter kod och Gettermetoder
 
 
@@ -660,7 +724,7 @@ public class HealthScript : MonoBehaviour
 //Healthstate enum 
 //alla de fyra olika tillstånden kommer att påverka spelaren på olika sätt
 public enum HealthState
-{
+{a
     Healthy, //omkring 100 - 70% Hp, Spelaren är vid detta stadie i en väldigt god from
     Injured, //Omkring 70 - 40 HP spelaren är skadad men är ändå i relativt gott tilstånd
     Critical, // 40 - 16 hp, 
